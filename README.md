@@ -9,6 +9,16 @@ Repository to house all GCP related resources for blockchain infrastructure.
 
 * GKE Autopilot can be enabled for your Kubernetes cluster by adding the variable `enable_autopilot = true` to your GKE Terraform configuration.
 
+## Terraform
+
+* The repository is created with Terraform modules.
+
+* The `modules` folder are the resources needed for the project.
+
+* The directories inside of the `plan` folder is the project you are working in.
+
+* To provision the resources in your folder, **make sure you are in the `plan` folder**, then the folder of the project of choice, **example** would be `lido`, and then apply the configuration with the usual `terraform init` and `terraform apply`.
+
 ## Google SDK
 
 * **Google SDK commands sheet** https://gist.github.com/pydevops/cffbd3c694d599c6ca18342d3625af97
