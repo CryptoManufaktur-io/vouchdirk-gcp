@@ -22,4 +22,10 @@ module "gke" {
   region           = "asia-northeast1"
   cluster_name     = "lido" 
   ip_cidr_range    = "10.148.0.0/20"
+  bucket_name      = "lido-cloud-storage"
+  bucket_location  = "asia"
+  storage_class    = "MULTI_REGIONAL"
+  ring_name        = "lido-ring"
+  ring_location    = "global"
+  key_name         =  "vouch-dirk-key"
 }
