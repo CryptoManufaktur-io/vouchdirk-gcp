@@ -51,3 +51,4 @@ variable "ring_location" {
   type        = string
   description = "KMS key location"
 }
+

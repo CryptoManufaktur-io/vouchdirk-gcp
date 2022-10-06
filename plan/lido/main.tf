@@ -29,3 +29,17 @@ module "gke" {
   ring_location    = "global"
   key_name         =  "vouch-dirk-key"
 }
+
+module "compute" {
+  source           = "../../modules/compute"
+  project_id       = "lido-360921"
+  region           = "asia-northeast1"
+  compute_name     = "dirk1"
+  compute_size     = "t3a.small"
+  compute_zone     = "asia-northeast1-a"
+  compute_image    = "debian-cloud/debian-10"
+  vpc_name         = "dirk1-vpc"
+  router_name      = "dirk1-router"
+  nat_name         = "dirk1-nat"
+  project          = "lido"
+}
