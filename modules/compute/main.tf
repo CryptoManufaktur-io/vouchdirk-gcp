@@ -11,12 +11,13 @@ terraform {
 
 }
 
-
 #compute
 resource "google_compute_instance" "default" { 
   name         = var.compute_name
   machine_type = var.compute_size
   zone         = var.compute_zone
+  project      = var.project_id
+  # tags         = ["allow-http"]
 
 
   boot_disk {
@@ -33,4 +34,5 @@ resource "google_compute_instance" "default" {
     }
   }
 }
+
 

@@ -26,6 +26,7 @@ variable "compute_size" {
   description = "compute_size"
 }
 
+
 variable "compute_image" {
   description = "compute_image"
 }
