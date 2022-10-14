@@ -33,19 +33,4 @@ name          = var.bucket_name
 storage_class = var.storage_class 
 }
 
-# KMS Key Ring
-resource "google_kms_key_ring" "default" {
-  name     = var.ring_name
-  location = var.ring_location
-}
-
-resource "google_kms_crypto_key" "default" {
-  name            = var.key_name
-  key_ring        = google_kms_key_ring.default.id
-  rotation_period = "100000s"
-
-    lifecycle {
-    prevent_destroy = true
-  }
-}
 

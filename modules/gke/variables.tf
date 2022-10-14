@@ -37,18 +37,4 @@ variable "storage_class" {
   type        = string
 }
 
-variable "ring_name" {
-  type        = string
-  description = "KMS key ring name"
-}
-
-variable "key_name" {
-  type        = string
-  description = "KMS key ring name"
-}
-
-variable "ring_location" {
-  type        = string
-  description = "KMS key location"
-}
 
