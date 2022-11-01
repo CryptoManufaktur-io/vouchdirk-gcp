@@ -1,3 +1,4 @@
+#instance
 variable "project" {
         description = "name of project you are using"
     }
@@ -13,15 +14,17 @@ variable "compute_image" {
 variable "region_name" {
         description = "region instance is deployed in"
     }
+
+#vpc
 variable "vpc_name" {
         description = "vpc_name"
     }
 
 #subnetwork
-variable "private_subnet_1" {
+variable "private_subnet_5" {
         description = "private_subnet"
     }
-variable "public_subnet_1" {
+variable "public_subnet_5" {
         description = "public_subnet"
     }
 variable "public_subnetwork" {
@@ -30,4 +33,3 @@ variable "public_subnetwork" {
 variable "private_subnetwork" {
         description = "private subnetwork name"
     }
-

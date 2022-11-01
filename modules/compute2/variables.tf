@@ -13,15 +13,20 @@ variable "compute_image" {
 variable "region_name" {
         description = "region instance is deployed in"
     }
-variable "private_subnet_1" {
-        description = "private_subnet"
+variable "vpc_name" {
+        description = "vpc_name"
     }
-variable "public_subnet_1" {
-        description = "public_subnet"
-    }
+
+#subnetwork
 variable "private_subnet_2" {
         description = "private_subnet"
     }
 variable "public_subnet_2" {
         description = "public_subnet"
+    }
+variable "public_subnetwork" {
+        description = "public subnetwork name"
+    }
+variable "private_subnetwork" {
+        description = "private subnetwork name"
     }

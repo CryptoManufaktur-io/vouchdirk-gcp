@@ -1,5 +1,5 @@
 resource "google_compute_network" "vpc" {
-  name                    =  "dirk-vpc"
+  name                    = var.vpc_name
   auto_create_subnetworks = "false"
   routing_mode            = "GLOBAL"
   project                 = var.project
@@ -21,9 +21,9 @@ resource "google_compute_firewall" "allow-internal" {
   }
   source_ranges = [
     "${var.private_subnet_1}",
-    "${var.private_subnet_1}",
-    "${var.public_subnet_2}",
-    "${var.public_subnet_2}"
+    # "${var.private_subnet_2}",
+    "${var.public_subnet_1}",
+    # "${var.public_subnet_2}"
   ]
 }
 resource "google_compute_firewall" "allow-http" {

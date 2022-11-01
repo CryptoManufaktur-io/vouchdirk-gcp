@@ -18,10 +18,10 @@ variable "vpc_name" {
     }
 
 #subnetwork
-variable "private_subnet_1" {
+variable "private_subnet_3" {
         description = "private_subnet"
     }
-variable "public_subnet_1" {
+variable "public_subnet_3" {
         description = "public_subnet"
     }
 variable "public_subnetwork" {
@@ -30,4 +30,3 @@ variable "public_subnetwork" {
 variable "private_subnetwork" {
         description = "private subnetwork name"
     }
-
