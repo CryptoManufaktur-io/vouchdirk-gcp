@@ -1,18 +1,15 @@
-provider "google" {
-  project = var.project_id
-  region  = var.region
-}
-
 # VPC
 resource "google_compute_network" "vpc" {
   name                    = "${var.project_id}-vpc"
   auto_create_subnetworks = "false"
 }
 
-# Subnet
+# Subnets
 resource "google_compute_subnetwork" "subnet" {
-  name          = "${var.project_id}-subnet"
-  region        = var.region
+  for_each = var.regions
+
+  name          = "${each.key}-subnet"
+  region        = each.key
   network       = google_compute_network.vpc.name
-  ip_cidr_range = "10.148.0.0/20"
+  ip_cidr_range = each.value.cidr
 }

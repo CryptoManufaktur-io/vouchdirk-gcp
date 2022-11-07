@@ -1,5 +1,6 @@
 # GCP
-Repository to house all GCP related resources for blockchain infrastructure. 
+
+Repository to house all GCP related resources for blockchain infrastructure.
 
 ## What is GCP Autopilot
 
@@ -11,6 +12,8 @@ Repository to house all GCP related resources for blockchain infrastructure.
 
 ## Terraform
 
+`terraform init -backend-config=backend.conf`
+
 * The repository is created with Terraform modules.
 
 * The `modules` folder are the resources needed for the project.
@@ -21,11 +24,11 @@ Repository to house all GCP related resources for blockchain infrastructure.
 
 ## Google SDK
 
-* **Google SDK commands sheet** https://gist.github.com/pydevops/cffbd3c694d599c6ca18342d3625af97
+* **Google SDK commands sheet** <https://gist.github.com/pydevops/cffbd3c694d599c6ca18342d3625af97>
 
 * **Google Cloud SDK:** command line utility for managing Google Cloud Platform resources.
 
-* Install Google SDK: https://cloud.google.com/sdk/docs/install-sdk
+* Install Google SDK: <https://cloud.google.com/sdk/docs/install-sdk>
 
 * Initialize the gcloud environment:  `gcloud init`
 * You’ll be able to connect your Google account with the gcloud environment by following the on-screen instructions in your browser.
