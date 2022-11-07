@@ -7,4 +7,8 @@ resource "google_container_cluster" "primary" {
 
   network    = var.network
   subnetwork = var.subnetwork
+
+  vertical_pod_autoscaling {
+    enabled = true
+  }
 }

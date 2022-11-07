@@ -12,15 +12,15 @@ Repository to house all GCP related resources for blockchain infrastructure.
 
 ## Terraform
 
-`terraform init -backend-config=backend.conf`
+* You need to initialize terraform. For shared use we use a remote backend saved in s3 compatible storage. Copy `backend_template.conf` to `backend.conf` and update as required. Then initialize terraform using `terraform init -backend-config=backend.conf`
 
 * The repository is created with Terraform modules.
 
 * The `modules` folder are the resources needed for the project.
 
-* The directories inside of the `plan` folder is the project you are working in.
+* You need to change configuration as needed. For the different resources to provision, just copy `template_template.tfvars` to `template.tfvars` and update it as required.
 
-* To provision the resources in your folder, **make sure you are in the `plan` folder**, then the folder of the project of choice, **example** would be `lido`, and then apply the configuration with the usual `terraform init` and `terraform apply`.
+* To provision the resources in your folder, **make sure you are in the `root` folder**, then just do `terraform apply`.
 
 ## Google SDK
 
@@ -33,7 +33,7 @@ Repository to house all GCP related resources for blockchain infrastructure.
 * Initialize the gcloud environment:  `gcloud init`
 * You’ll be able to connect your Google account with the gcloud environment by following the on-screen instructions in your browser.
 
-* You can also intiliaze your environment with the following command: **example** `gcloud auth application-default login --project lido-360921`
+* You can also intiliaze your environment with the following command: **example** `gcloud auth application-default login`
 
 * Verify your account and project. `gcloud config list`
 
