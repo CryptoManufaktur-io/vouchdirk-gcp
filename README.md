@@ -40,3 +40,11 @@ Repository to house all GCP related resources for blockchain infrastructure.
 * After your provision the GKE cluster with `terraform apply` run the following command to retrieve the access credentials for your cluster and automatically configure. **example** `gcloud container clusters get-credentials lido --region asia-northeast1`
 
 * Finally set the context of the cluster to the desired cluster. **example** `kubectl config use-context my-cluster-name`
+
+## SSH Compute Instance
+
+* After initializing your environment, cache your project ID. `gcloud config set project YOUR-PROJECT-ID-HERE`
+
+* Verify the instance status. `gcloud compute instances list`
+
+* Create SSH keys. `gcloud compute ssh COMPUTE-NAME`

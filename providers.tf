@@ -5,9 +5,16 @@ terraform {
       version = "4.3.0"
     }
   }
+  
+   backend "gcs" {
+     bucket  = "lido-terraform-state"
+     prefix  = "terraform/lido"
+   }
 
-  backend "s3" {}
+#   backend "s3" {}
+# }
 }
+
 
 provider "google" {
   # Configuration options
