@@ -6,15 +6,9 @@ terraform {
     }
   }
   
-   backend "gcs" {
-     bucket  = "lido-terraform-state"
-     prefix  = "terraform/lido"
-   }
+   backend "gcs" {}
 
-#   backend "s3" {}
-# }
 }
-
 
 provider "google" {
   # Configuration options
