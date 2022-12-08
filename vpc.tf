@@ -13,3 +13,12 @@ resource "google_compute_subnetwork" "subnet" {
   network       = google_compute_network.vpc.name
   ip_cidr_range = each.value.cidr
 }
+
+resource "google_compute_subnetwork" "gke_subnet" {
+  for_each =  var.gke
+
+  name          = "gke-${each.key}-subnet"
+  region        = each.value.region
+  network       = google_compute_network.vpc.name
+  ip_cidr_range = each.value.cidr
+}

@@ -1,50 +1,72 @@
-# GCP
+# vouchdirk-gcp
 
-Repository to house all GCP related resources for blockchain infrastructure.
+This terraform project creates all the infrastructure necessary for [vouchdirk-docker](https://github.com/CryptoManufaktur-io/vouchdirk-docker/) in GCP.
 
-## What is GCP Autopilot
+The infrastructure includes:
 
-* Autopilot is a managed Google Kubernetes Engine (GKE) that is designed to reduce the operational cost of managing clusters, optimize your clusters for production, and yield higher workload availability.
+- 5 dirk VMs with reserved IP addresses
+- 1 GKE [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview#what-is-autopilot) Private Cluster, running:
+    - Vouch
+    - Prometheus
+    - ExternalDNS
+    - Traefik
+- dirk firewall to allow port 13141 traffic from the other dirks and from vouch
+- ssh firewall to allow ssh traffic from the defined addresses
+- 5 subnets for the dirks
+- 1 subnet for the GKE cluster
+- 1 NAT gateway with reserved IP address for the Pods to connect to the internet
 
-* Autopilot GKE provisions and manages the cluster's underlying infrastructure, including nodes and node pools, giving you an optimized cluster with a hands-off experience.
+The GKE cluster uses Authorized Networks and only traffic from the `dirk1` VM has access to the Control Plane. 
 
-* GKE Autopilot can be enabled for your Kubernetes cluster by adding the variable `enable_autopilot = true` to your GKE Terraform configuration.
+In order for terraform to create the multiple Kubernetes resources, an SSH tunnel is created to `dirk1` which then proxies the traffic to the Kubernetes Control Plane.
 
-## Terraform
+The tunnel is achieved by an External Data Source which runs the necessary shell commands.
 
-* You need to initialize terraform. For shared use we use a remote backend saved in s3 compatible storage. Copy `backend_template.conf` to `backend.conf` and update as required. Then initialize terraform using `terraform init -backend-config=backend.conf`
+Vouch's MEV-boost service is exposed via Traefik on a Service with a Load Balancer behind a firewall.
 
-* The repository is created with Terraform modules.
+## Requirements
 
-* The `modules` folder are the resources needed for the project.
+- Cloudflare Global API keys.
+- GCP Account with billing enabled
+- GCP Project with:
+    - [Cloud Logging API](https://console.cloud.google.com/apis/library/logging.googleapis.com) enabled
+    - [Kubernetes Engine API](https://console.cloud.google.com/apis/library/container.googleapis.com) enabled
+    - [Compute Engine API](https://console.cloud.google.com/apis/library/compute.googleapis.com) enabled
+    - [Cloud Storage Bucket](https://console.cloud.google.com/storage/browser) to store Terraform state
+- [Terraform cli](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
+- [kubectl cli](https://kubernetes.io/docs/tasks/tools/#kubectl)
+- [gcloud cli](https://cloud.google.com/sdk/docs/install-sdk#installing_the_latest_version)
 
-* You need to change configuration as needed. For the different resources to provision, just copy `template_template.tfvars` to `template.tfvars` and update it as required.
+## Setup
 
-* To provision the resources in your folder, **make sure you are in the `root` folder**, then just do `terraform apply`.
+- Generate the [vouchdirk-docker](https://github.com/CryptoManufaktur-io/vouchdirk-docker/#initial-setup) `config/` folder and copy it to the root of project folder.
+- Initialize gcloud: 
+```shell
+gcloud init
+gcloud auth application-default login
+```
+- Copy `backend.conf.sample` to `backend.conf` and set the Bucket name and Prefix for Terraform state data.
+- Copy `terraform.tfvars.sample` to `terraform.tfvars` and modify as needed.
+- Copy `prometheus-custom.yml.sample` to `prometheus-custom.yml` and modify as needed. Prometheus is not exposed in this use case and remote write is expected.
+- Initialize terraform:
+```shell
+terraform init -backend-config=backend.conf
+```
+- Deploy
+```shell
+terraform apply
+```
 
-## Google SDK
+## Using kubectl
 
-* **Google SDK commands sheet** <https://gist.github.com/pydevops/cffbd3c694d599c6ca18342d3625af97>
+In order to create the ssh tunnel when needed, you can execute `terraform plan`.
 
-* **Google Cloud SDK:** command line utility for managing Google Cloud Platform resources.
+You can then use the environment variable `HTTPS_PROXY` with the kubectl command for the requests to be tunneled and proxied.
 
-* Install Google SDK: <https://cloud.google.com/sdk/docs/install-sdk>
+E.g:
 
-* Initialize the gcloud environment:  `gcloud init`
-* You’ll be able to connect your Google account with the gcloud environment by following the on-screen instructions in your browser.
+```shell
+HTTPS_PROXY=localhost:8888 kubectl get pods
+```
 
-* You can also intiliaze your environment with the following command: **example** `gcloud auth application-default login`
-
-* Verify your account and project. `gcloud config list`
-
-* After your provision the GKE cluster with `terraform apply` run the following command to retrieve the access credentials for your cluster and automatically configure. **example** `gcloud container clusters get-credentials lido --region asia-northeast1`
-
-* Finally set the context of the cluster to the desired cluster. **example** `kubectl config use-context my-cluster-name`
-
-## SSH Compute Instance
-
-* After initializing your environment, cache your project ID. `gcloud config set project YOUR-PROJECT-ID-HERE`
-
-* Verify the instance status. `gcloud compute instances list`
-
-* Create SSH keys. `gcloud compute ssh COMPUTE-NAME`
+Once finished, you can run `killall ssh` to kill the ssh tunnel or you can find the specific process ID and kill it if you need to keep other ssh processes running.

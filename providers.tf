@@ -6,17 +6,10 @@ terraform {
     }
   }
   
-   backend "gcs" {
-     bucket  = "lido-terraform-state"
-     prefix  = "terraform/lido"
-   }
-
-#   backend "s3" {}
-# }
+   backend "gcs" {}
 }
 
 
 provider "google" {
-  # Configuration options
   project = var.project_id
 }

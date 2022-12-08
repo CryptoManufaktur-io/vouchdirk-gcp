@@ -1,0 +1,54 @@
+project_id = "vouchdirk"
+terraform_bucket = "vouchdirk-terraform-state"
+
+regions = {
+  northamerica-northeast1 = { cidr = "10.108.0.0/20" }
+  us-west1 = { cidr = "10.128.0.0/20" }
+  us-central1 = { cidr = "10.138.0.0/20" }
+  us-east1 = { cidr = "10.148.0.0/20" }
+  us-south1 = { cidr = "10.158.0.0/20" }
+}
+
+# Compute configuration
+compute_size = "e2-small"
+default_tags = ["ssh"]
+
+compute = {
+  # dirk1 should always have a proxy installed so it can be used in an ssh tunnel for kubectl
+  # it should also be in the same region as the GKE cluster.
+  dirk1 = { region = "us-east1", zone = "b", extra_tags = ["firewall-dirk"], metadata_startup_script = <<EOF
+#! /bin/bash
+apt-get update
+apt-get install -y tinyproxy
+grep -qxF 'Allow localhost' /etc/tinyproxy/tinyproxy.conf || echo 'Allow localhost' >> /etc/tinyproxy/tinyproxy.conf
+systemctl restart tinyproxy
+EOF
+  }
+  dirk2 = { region = "northamerica-northeast1", zone = "b", extra_tags = ["firewall-dirk"], metadata_startup_script="" }
+  dirk3 = { region = "us-central1", zone = "c", extra_tags = ["firewall-dirk"], metadata_startup_script="" }
+  dirk4 = { region = "us-west1", zone = "a", extra_tags = ["firewall-dirk"], metadata_startup_script="" }
+  dirk5 = { region = "us-south1", zone = "c", extra_tags = ["firewall-dirk"], metadata_startup_script="" }
+}
+
+# GKE configuration
+gke = {
+  lido = { region = "us-east1", cidr = "10.100.0.0/20" }
+}
+
+ssh_user = "debian"
+ssh_pub_key = "/path/to/public.pub"
+ssh_private_key = "/path/to/private.pem"
+
+# If extra arguments are needed for the ssh command to connect to dirk1 (e.g: going through a Jump host, they can be added here).
+ssh_extra_args = ""
+
+# Cloudflare is used to set the DNS records and generate LetsEncrypt ssl certs for the mev-boost service.
+acme_email = "user@example.com"
+cf_api_email = "user@example.com"
+cf_api_key = "APIKEY"
+cf_domain = "example.com"
+
+mev_subdomain = "mev-vouchdirk"
+
+ssh_in_addresses = ["0.0.0.0/0"]
+vouch_https_in_addresses = ["0.0.0.0/0"]

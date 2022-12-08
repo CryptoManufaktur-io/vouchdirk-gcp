@@ -27,3 +27,51 @@ variable "default_tags" {
   description = "Default tags when not provided"
   type        = list(string)
 }
+
+variable "ssh_user" {
+  description = "SSH Username"
+  type        = string
+}
+
+variable "ssh_pub_key" {
+  description = "SSH Public Key"
+  type        = string
+}
+
+variable "ssh_private_key" {
+  description = "SSH Private Key"
+  type        = string
+}
+
+variable "ssh_extra_args" {
+  description = "SSH Command extra arguments. E.g: -J for jumphost"
+  type        = string
+}
+
+variable "acme_email" {
+  type = string
+}
+
+variable "cf_api_email" {
+  type        = string
+}
+
+variable "cf_api_key" {
+  type        = string
+}
+
+variable "cf_domain" {
+  type        = string
+}
+
+variable "mev_subdomain" {
+  type = string
+}
+
+variable "ssh_in_addresses" {
+  type = list(string)
+}
+
+variable "vouch_https_in_addresses" {
+  type        = list(string)
+}

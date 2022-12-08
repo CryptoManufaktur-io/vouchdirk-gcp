@@ -17,3 +17,7 @@ variable "subnetwork" {
   description = "Subnetwork"
   type = string
 }
+
+variable "authorized_network" {
+  type = string
+}
