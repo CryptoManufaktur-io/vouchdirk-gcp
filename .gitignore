@@ -1,4 +1,5 @@
 # Local .terraform directories
+.terraform
 **/.terraform/*
 
 # .tfstate files
@@ -36,3 +37,9 @@ terraform.rc
 
 # Ignore lock file.
 .terraform.lock.hcl
+
+config/
+
+.DS_Store
+
+prometheus-custom.yml

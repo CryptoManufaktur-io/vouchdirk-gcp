@@ -1,0 +1,5 @@
+# Bucket name for terraform state storage
+bucket = "lido-vouchdirk-test-terraform-state"
+
+# Prefix path for state files
+prefix = "terraform"
