@@ -122,7 +122,7 @@ data "external" "bastion" {
   program = ["python3", "${path.module}/start_proxy.py"]
   query = {
     project  = var.project_id
-    zone     = "us-east1-b"
+    zone     = "${module.compute["dirk1"].zone}"
     instance = "dirk1"
     ssh_user = var.ssh_user
     ssh_private_key = var.ssh_private_key
