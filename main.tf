@@ -138,7 +138,7 @@ resource "kubernetes_config_map" "vouch1-config" {
   }
 
   data = {
-    "vouch-ee.json" = "${file("${path.module}/config/vouch1-ee.json")}"
+    "vouch-ee.json" = "${file("${path.module}/config/vouch-ee.json")}"
     "vouch.yml" = "${file("${path.module}/config/vouch1.yml")}"
   }
 }
@@ -182,7 +182,7 @@ resource "kubernetes_deployment" "vouch1" {
 
       spec {
         container {
-          image = "attestant/vouch:latest"
+          image = "attestant/vouch:1.6.3"
           name  = "vouch1"
           args = ["--base-dir=/config"]
 
