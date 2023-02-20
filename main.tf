@@ -251,10 +251,20 @@ resource "kubernetes_deployment" "vouch1" {
   }
 }
 
+resource "kubernetes_secret" "external_dns" {
+  metadata {
+    name = "external-dns"
+  }
+}
+
 resource "kubernetes_service_account" "external_dns" {
 
   metadata {
     name = "external-dns"
+  }
+
+  secret {
+    name = "${kubernetes_secret.external_dns.metadata.0.name}"
   }
 }
 
@@ -401,9 +411,19 @@ resource "kubernetes_cluster_role" "traefik_role" {
   }
 }
 
+resource "kubernetes_secret" "traefik_account" {
+  metadata {
+    name = "traefik-account"
+  }
+}
+
 resource "kubernetes_service_account" "traefik_account" {
   metadata {
     name = "traefik-account"
+  }
+
+  secret {
+    name = "${kubernetes_secret.traefik_account.metadata.0.name}"
   }
 }
 
@@ -542,9 +562,9 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
       }
     }
 
-    tls {
-      hosts = ["${var.mev_subdomain}.${var.cf_domain}"]
-    }
+    # tls {
+    #   hosts = ["${var.mev_subdomain}.${var.cf_domain}"]
+    # }
   }
 }
 
