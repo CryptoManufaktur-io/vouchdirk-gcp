@@ -138,7 +138,7 @@ resource "kubernetes_config_map" "vouch1-config" {
   }
 
   data = {
-    "vouch-ee.json" = "${file("${path.module}/config/vouch-ee.json")}"
+    "vouch-ee.json" = "${file("${path.module}/config/vouch1-ee.json")}"
     "vouch.yml" = "${file("${path.module}/config/vouch1.yml")}"
   }
 }
@@ -187,12 +187,32 @@ resource "kubernetes_deployment" "vouch1" {
           args = ["--base-dir=/config"]
 
           volume_mount {
-            mount_path = "/config"
+            mount_path = "/config/vouch-ee.json"
+            sub_path = "vouch-ee.json"
             name       = "config"
           }
           
           volume_mount {
-            mount_path = "/config"
+            mount_path = "/config/vouch.yml"
+            sub_path = "vouch.yml"
+            name       = "config"
+          }
+
+          volume_mount {
+            mount_path = "/config/certs/vouch1.crt"
+            sub_path = "vouch1.crt"
+            name       = "secret"
+          }
+
+          volume_mount {
+            mount_path = "/config/certs/vouch1.key"
+            sub_path = "vouch1.key"
+            name       = "secret"
+          }
+
+          volume_mount {
+            mount_path = "/config/certs/dirk_authority.crt"
+            sub_path = "dirk_authority.crt"
             name       = "secret"
           }
 
