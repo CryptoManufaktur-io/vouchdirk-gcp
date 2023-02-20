@@ -192,7 +192,7 @@ resource "kubernetes_deployment" "vouch1" {
           }
           
           volume_mount {
-            mount_path = "/secret"
+            mount_path = "/config"
             name       = "secret"
           }
 
