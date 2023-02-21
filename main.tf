@@ -540,7 +540,7 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
       host = "${var.mev_subdomain}.${var.cf_domain}"
       http {
         path {
-          path      = "/*"
+          # path      = "/*"
 
           backend {
             service {
