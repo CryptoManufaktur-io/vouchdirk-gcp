@@ -186,6 +186,10 @@ resource "kubernetes_deployment" "vouch1" {
           name  = "vouch1"
           args = ["--base-dir=/config"]
 
+          port {
+            container_port = 18550
+          }
+
           volume_mount {
             mount_path = "/config/vouch-ee.json"
             sub_path = "vouch-ee.json"
@@ -251,20 +255,10 @@ resource "kubernetes_deployment" "vouch1" {
   }
 }
 
-resource "kubernetes_secret" "external_dns" {
-  metadata {
-    name = "external-dns"
-  }
-}
-
 resource "kubernetes_service_account" "external_dns" {
 
   metadata {
     name = "external-dns"
-  }
-
-  secret {
-    name = "${kubernetes_secret.external_dns.metadata.0.name}"
   }
 }
 
@@ -342,8 +336,8 @@ resource "kubernetes_deployment" "external_dns" {
       spec {
         container {
           name  = "external-dns"
-          image = "registry.k8s.io/external-dns/external-dns:v0.13.1"
-          args  = ["--source=service", "--source=ingress", "--domain-filter=${var.cf_domain}", "--provider=cloudflare"]
+          image = "registry.k8s.io/external-dns/external-dns:v0.13.2"
+          args  = ["--source=service", "--source=ingress", "--domain-filter=${var.cf_domain}", "--provider=cloudflare", "--registry=txt", "--txt-owner-id=${var.mev_subdomain}"]
 
           env {
             name  = "CF_API_KEY"
@@ -374,16 +368,19 @@ resource "kubernetes_service" "vouch1-mev" {
 
   spec {
     port {
-      protocol    = "TCP"
-      port        = 443
+      # protocol    = "TCP"
+      port        = 80
       target_port = 18550
+      # name = "mev"
+      name = "http"
+      # port = 18550
     }
 
     selector = {
       vouch = "vouch1"
     }
 
-    type = "NodePort"
+    # type = "NodePort"
   }
 }
 
@@ -411,19 +408,9 @@ resource "kubernetes_cluster_role" "traefik_role" {
   }
 }
 
-resource "kubernetes_secret" "traefik_account" {
-  metadata {
-    name = "traefik-account"
-  }
-}
-
 resource "kubernetes_service_account" "traefik_account" {
   metadata {
     name = "traefik-account"
-  }
-
-  secret {
-    name = "${kubernetes_secret.traefik_account.metadata.0.name}"
   }
 }
 
@@ -474,19 +461,21 @@ resource "kubernetes_deployment" "traefik" {
           name  = "traefik"
           image = "traefik:latest"
           args  = [
-            # "--log.level=DEBUG",
+            "--log.level=DEBUG",
             # "--certificatesResolvers.letsencrypt.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory",
             "--providers.kubernetesingress",
             "--certificatesresolvers.letsencrypt.acme.dnschallenge=true",
             "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare",
             "--certificatesresolvers.letsencrypt.acme.email=${var.acme_email}",
-            "--entrypoints.web.address=:80",
-            "--entrypoints.web.http.redirections.entrypoint.to=websecure",
-            "--entrypoints.web.http.redirections.entrypoint.scheme=https",
             "--entrypoints.websecure.address=:443",
             "--entrypoints.websecure.http.tls=true",
             "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
           ]
+
+          port {
+            name           = "websecure"
+            container_port = 443
+          }
 
           env {
             name  = "CLOUDFLARE_API_KEY"
@@ -523,6 +512,7 @@ resource "kubernetes_service" "traefik_service" {
       protocol    = "TCP"
       port        = 443
       target_port = 443
+      name = "websecure"
     }
 
     selector = {
@@ -539,7 +529,9 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
   metadata {
     name = "vouch-ingress"
     annotations = {
-      "traefik.ingress.kubernetes.io/router.entrypoints": "websecure"
+      "traefik.ingress.kubernetes.io/router.entrypoints" = "websecure"
+      # "traefik.ingress.kubernetes.io/router.entrypoints" = "web"
+      # "traefik.ingress.kubernetes.io/router.tls" = "true"
     }
   }
 
@@ -548,23 +540,33 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
       host = "${var.mev_subdomain}.${var.cf_domain}"
       http {
         path {
+          path      = "/*"
+
           backend {
             service {
               name = "vouch1-mev"
+
               port {
-                number = 443
+                number = 80
+              }
+            }
+          }
+        }
+
+        path {
+          backend {
+            service {
+              name = "whoami"
+              port {
+                number = 80
               }
             }
           }
 
-          path = "/*"
+          path = "/foo"
         }
       }
     }
-
-    # tls {
-    #   hosts = ["${var.mev_subdomain}.${var.cf_domain}"]
-    # }
   }
 }
 
@@ -629,23 +631,66 @@ resource "kubernetes_deployment" "prometheus" {
   }
 }
 
-resource "kubernetes_service" "vouch_metrics" {
-
+resource "kubernetes_deployment" "whoami" {
   metadata {
-    name = "vouch-metrics"
+    name = "whoami"
+
+    labels = {
+      app = "traefiklabs"
+
+      name = "whoami"
+    }
+  }
+
+  spec {
+    replicas = 2
+
+    selector {
+      match_labels = {
+        app = "traefiklabs"
+
+        task = "whoami"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          app = "traefiklabs"
+
+          task = "whoami"
+        }
+      }
+
+      spec {
+        container {
+          name  = "whoami"
+          image = "traefik/whoami"
+
+          port {
+            container_port = 80
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "whoami" {
+  metadata {
+    name = "whoami"
   }
 
   spec {
     port {
-      protocol    = "TCP"
-      port        = 8081
-      target_port = 8081
+      name = "http"
+      port = 80
     }
 
     selector = {
-      vouch = "vouch1"
-    }
+      app = "traefiklabs"
 
-    type = "NodePort"
+      task = "whoami"
+    }
   }
 }
