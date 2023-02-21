@@ -633,6 +633,26 @@ resource "kubernetes_deployment" "prometheus" {
   }
 }
 
+resource "kubernetes_service" "vouch_metrics" {
+
+  metadata {
+    name = "vouch-metrics"
+  }
+
+  spec {
+    port {
+      name        = "vouch-metrics"
+      port        = 8081
+    }
+
+    selector = {
+      vouch = "vouch1"
+    }
+
+    type = "NodePort"
+  }
+}
+
 resource "kubernetes_deployment" "whoami" {
   metadata {
     name = "whoami"
