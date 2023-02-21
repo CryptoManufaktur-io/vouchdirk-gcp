@@ -371,8 +371,8 @@ resource "kubernetes_service" "vouch1-mev" {
       # protocol    = "TCP"
       port        = 80
       target_port = 18550
-      # name = "mev"
-      name = "http"
+      name = "mev"
+      # name = "http"
       # port = 18550
     }
 
@@ -380,7 +380,7 @@ resource "kubernetes_service" "vouch1-mev" {
       vouch = "vouch1"
     }
 
-    # type = "NodePort"
+    type = "NodePort"
   }
 }
 
@@ -547,7 +547,8 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
               name = "vouch1-mev"
 
               port {
-                number = 80
+                name = "mev"
+                # number = 80
               }
             }
           }
@@ -558,7 +559,8 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
             service {
               name = "whoami"
               port {
-                number = 80
+                name = "http"
+                # number = 80
               }
             }
           }
@@ -692,5 +694,7 @@ resource "kubernetes_service" "whoami" {
 
       task = "whoami"
     }
+
+    type = "NodePort"
   }
 }
