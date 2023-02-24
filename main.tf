@@ -182,7 +182,7 @@ resource "kubernetes_deployment" "vouch1" {
 
       spec {
         container {
-          image = "attestant/vouch:1.6.3"
+          image = "attestant/vouch:1.7.1"
           name  = "vouch1"
           args = ["--base-dir=/config"]
 
