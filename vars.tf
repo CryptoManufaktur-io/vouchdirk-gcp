@@ -18,6 +18,11 @@ variable "project_id" {
   type        = string
 }
 
+variable "vouch_tag" {
+  description = "Vouch docker image tag"
+  type        = string
+}
+
 variable "regions" {
   description = "All regions used"
   type        = map(any)

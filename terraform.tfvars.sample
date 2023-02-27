@@ -1,5 +1,5 @@
 project_id = "vouchdirk"
-terraform_bucket = "vouchdirk-terraform-state"
+vouch_tag = "1.7.2"
 
 regions = {
   northamerica-northeast1 = { cidr = "10.108.0.0/20" }
