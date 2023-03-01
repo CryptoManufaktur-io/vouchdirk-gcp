@@ -360,10 +360,29 @@ resource "kubernetes_deployment" "external_dns" {
   }
 }
 
+resource "kubernetes_manifest" "vouch-backend-config" {
+  manifest = {
+    apiVersion = "cloud.google.com/v1"
+    kind       = "BackendConfig"
+    metadata = {
+      name      = "mev-backend-config"
+      namespace = "default"
+    }
+    spec = {
+      healthCheck = {
+         requestPath = "/eth/v1/builder/status"
+       }
+    }
+  }
+}
+
 resource "kubernetes_service" "vouch1-mev" {
 
   metadata {
     name = "vouch1-mev"
+    annotations = {
+      "cloud.google.com/backend-config" = "{\"ports\": {\"80\":\"mev-backend-config\"}}"
+    }
   }
 
   spec {
@@ -530,8 +549,6 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
     name = "vouch-ingress"
     annotations = {
       "traefik.ingress.kubernetes.io/router.entrypoints" = "websecure"
-      # "traefik.ingress.kubernetes.io/router.entrypoints" = "web"
-      # "traefik.ingress.kubernetes.io/router.tls" = "true"
     }
   }
 
@@ -540,15 +557,12 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
       host = "${var.mev_subdomain}.${var.cf_domain}"
       http {
         path {
-          # path      = "/*"
-
           backend {
             service {
               name = "vouch1-mev"
 
               port {
                 name = "mev"
-                # number = 80
               }
             }
           }
@@ -560,7 +574,6 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
               name = "whoami"
               port {
                 name = "http"
-                # number = 80
               }
             }
           }
