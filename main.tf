@@ -360,7 +360,7 @@ resource "kubernetes_deployment" "external_dns" {
   }
 }
 
-resource "kubernetes_manifest" "vouch-backend-config" {
+resource "kubernetes_manifest" "vouch_backend_config" {
   manifest = {
     apiVersion = "cloud.google.com/v1"
     kind       = "BackendConfig"
@@ -377,6 +377,8 @@ resource "kubernetes_manifest" "vouch-backend-config" {
 }
 
 resource "kubernetes_service" "vouch1-mev" {
+
+  depends_on = [ kubernetes_manifest.vouch_backend_config ]
 
   metadata {
     name = "vouch1-mev"
