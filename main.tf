@@ -41,7 +41,7 @@ module "gke" {
   cluster_name = each.key
   region = each.value.region
   network = google_compute_network.vpc.name
-  subnetwork = "gke-${each.key}-subnet"
+  subnetwork = google_compute_subnetwork.gke_subnet["lido"].id
   authorized_network =  "${module.compute["dirk1"].ip_address.address}/32"
 }
 
@@ -361,6 +361,11 @@ resource "kubernetes_deployment" "external_dns" {
 }
 
 resource "kubernetes_manifest" "vouch_backend_config" {
+
+  lifecycle {
+    ignore_changes = all
+  }
+
   manifest = {
     apiVersion = "cloud.google.com/v1"
     kind       = "BackendConfig"
@@ -377,8 +382,6 @@ resource "kubernetes_manifest" "vouch_backend_config" {
 }
 
 resource "kubernetes_service" "vouch1-mev" {
-
-  depends_on = [ kubernetes_manifest.vouch_backend_config ]
 
   metadata {
     name = "vouch1-mev"
@@ -454,6 +457,10 @@ resource "kubernetes_cluster_role_binding" "traefik_role_binding" {
 }
 
 resource "kubernetes_deployment" "traefik" {
+
+  depends_on = [
+    kubernetes_service_account.traefik_account
+  ]
 
   metadata {
     name = "traefik"
