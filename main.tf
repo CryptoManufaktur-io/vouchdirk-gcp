@@ -20,7 +20,8 @@ module "compute" {
   compute_size  = var.compute_size
   zone          = "${each.value.region}-${each.value.zone}"
   tags          = concat(var.default_tags, each.value.extra_tags)
-  region = each.value.region
+  region        = each.value.region
+  hostname      = "${var.hostname_prefix}-${each.value.hostname}"
 
   network = google_compute_network.vpc.name
   subnetwork = google_compute_subnetwork.subnet[each.value.region].name

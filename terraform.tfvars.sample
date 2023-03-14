@@ -13,6 +13,8 @@ regions = {
 compute_size = "e2-small"
 default_tags = ["ssh"]
 
+hostname_prefix = "vouchdirk-"
+
 compute = {
   # dirk1 should always have a proxy installed so it can be used in an ssh tunnel for kubectl
   # it should also be in the same region as the GKE cluster.
