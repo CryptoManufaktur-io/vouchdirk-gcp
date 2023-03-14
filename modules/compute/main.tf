@@ -7,7 +7,6 @@ resource "google_compute_instance" "default" {
   name         = var.compute_name
   machine_type = var.compute_size
   zone         = var.zone
-  hostname     = var.hostname
 
   tags = var.tags
 
@@ -32,7 +31,7 @@ resource "google_compute_instance" "default" {
 
   lifecycle {
     ignore_changes = [
-      hostname
+      name
     ]
   }
 }

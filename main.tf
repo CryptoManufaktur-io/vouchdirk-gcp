@@ -15,13 +15,12 @@ module "compute" {
   source   = "./modules/compute"
   for_each = var.compute
 
-  compute_name  = each.key
+  compute_name  = "${var.hostname_prefix}-${each.value.hostname}"
   compute_image = "debian-cloud/debian-11"
   compute_size  = var.compute_size
   zone          = "${each.value.region}-${each.value.zone}"
   tags          = concat(var.default_tags, each.value.extra_tags)
   region        = each.value.region
-  hostname      = "${var.hostname_prefix}-${each.value.hostname}"
 
   network = google_compute_network.vpc.name
   subnetwork = google_compute_subnetwork.subnet[each.value.region].name

@@ -33,11 +33,6 @@ variable "region" {
   type = string
 }
 
-variable "hostname" {
-  description = "The VM hostname"
-  type = string
-}
-
 variable "tags" {
   description = "Tags for the instance"
   type        = list(string)
