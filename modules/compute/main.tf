@@ -1,6 +1,12 @@
 resource "google_compute_address" "ip_address" {
   name = "${var.compute_name}-ip"
   region = var.region
+
+  lifecycle {
+    ignore_changes = [
+      name
+    ]
+  }
 }
 
 resource "google_compute_instance" "default" {
