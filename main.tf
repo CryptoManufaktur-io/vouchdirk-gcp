@@ -123,7 +123,7 @@ data "external" "bastion" {
   query = {
     project  = var.project_id
     zone     = "${module.compute["dirk1"].zone}"
-    instance = "dirk1"
+    instance = module.compute["dirk1"].name
     ssh_user = var.ssh_user
     ssh_private_key = var.ssh_private_key
     ssh_extra_args = var.ssh_extra_args

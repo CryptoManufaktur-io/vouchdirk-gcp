@@ -21,4 +21,5 @@ resource "google_compute_subnetwork" "gke_subnet" {
   region        = each.value.region
   network       = google_compute_network.vpc.name
   ip_cidr_range = each.value.cidr
+  private_ip_google_access = true
 }
