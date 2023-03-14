@@ -13,10 +13,12 @@ regions = {
 compute_size = "e2-small"
 default_tags = ["ssh"]
 
+hostname_prefix = "lido-vouchdirk"
+
 compute = {
   # dirk1 should always have a proxy installed so it can be used in an ssh tunnel for kubectl
   # it should also be in the same region as the GKE cluster.
-  dirk1 = { region = "us-east1", zone = "b", extra_tags = ["firewall-dirk"], metadata_startup_script = <<EOF
+  dirk1 = { region = "us-east1", zone = "b", extra_tags = ["firewall-dirk"], hostname="a", metadata_startup_script = <<EOF
 #! /bin/bash
 apt-get update
 apt-get install -y tinyproxy
@@ -24,10 +26,10 @@ grep -qxF 'Allow localhost' /etc/tinyproxy/tinyproxy.conf || echo 'Allow localho
 systemctl restart tinyproxy
 EOF
   }
-  dirk2 = { region = "northamerica-northeast1", zone = "b", extra_tags = ["firewall-dirk"], metadata_startup_script="" }
-  dirk3 = { region = "us-central1", zone = "c", extra_tags = ["firewall-dirk"], metadata_startup_script="" }
-  dirk4 = { region = "us-west1", zone = "a", extra_tags = ["firewall-dirk"], metadata_startup_script="" }
-  dirk5 = { region = "us-south1", zone = "c", extra_tags = ["firewall-dirk"], metadata_startup_script="" }
+  dirk2 = { region = "northamerica-northeast1", zone = "b", extra_tags = ["firewall-dirk"], hostname="b", metadata_startup_script="" }
+  dirk3 = { region = "us-central1", zone = "c", extra_tags = ["firewall-dirk"], hostname="c", metadata_startup_script="" }
+  dirk4 = { region = "us-west1", zone = "a", extra_tags = ["firewall-dirk"], hostname="d", metadata_startup_script="" }
+  dirk5 = { region = "us-south1", zone = "c", extra_tags = ["firewall-dirk"], hostname="e", metadata_startup_script="" }
 }
 
 # GKE configuration

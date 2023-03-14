@@ -5,3 +5,7 @@ output "ip_address" {
 output "zone" {
     value = google_compute_instance.default.zone
 }
+
+output "name" {
+    value = google_compute_instance.default.name
+}

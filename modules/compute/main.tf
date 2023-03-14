@@ -1,6 +1,12 @@
 resource "google_compute_address" "ip_address" {
   name = "${var.compute_name}-ip"
   region = var.region
+
+  lifecycle {
+    ignore_changes = [
+      name
+    ]
+  }
 }
 
 resource "google_compute_instance" "default" {
@@ -29,14 +35,9 @@ resource "google_compute_instance" "default" {
     startup-script = var.metadata_startup_script
   }
 
-  # provisioner "file" {
-  #   source      = var.dir_provisioner.source
-  #   destination = var.dir_provisioner.destination
-  #   connection {
-  #     host = "${google_compute_instance.default.network_interface.0.access_config.0.nat_ip}"
-  #     type = "ssh"
-  #     user = var.ssh_user
-  #     private_key = "${file(var.ssh_private_key)}"
-  #   }
-  # }
+  lifecycle {
+    ignore_changes = [
+      name
+    ]
+  }
 }

@@ -15,12 +15,12 @@ module "compute" {
   source   = "./modules/compute"
   for_each = var.compute
 
-  compute_name  = each.key
+  compute_name  = "${var.hostname_prefix}-${each.value.hostname}"
   compute_image = "debian-cloud/debian-11"
   compute_size  = var.compute_size
   zone          = "${each.value.region}-${each.value.zone}"
   tags          = concat(var.default_tags, each.value.extra_tags)
-  region = each.value.region
+  region        = each.value.region
 
   network = google_compute_network.vpc.name
   subnetwork = google_compute_subnetwork.subnet[each.value.region].name
@@ -123,7 +123,7 @@ data "external" "bastion" {
   query = {
     project  = var.project_id
     zone     = "${module.compute["dirk1"].zone}"
-    instance = "dirk1"
+    instance = module.compute["dirk1"].name
     ssh_user = var.ssh_user
     ssh_private_key = var.ssh_private_key
     ssh_extra_args = var.ssh_extra_args

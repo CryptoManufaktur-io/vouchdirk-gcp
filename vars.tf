@@ -33,6 +33,11 @@ variable "default_tags" {
   type        = list(string)
 }
 
+variable "hostname_prefix" {
+  description = "Hostname prefix for VMs"
+  type        = string
+}
+
 variable "ssh_user" {
   description = "SSH Username"
   type        = string
