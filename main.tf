@@ -15,12 +15,12 @@ module "compute" {
   source   = "./modules/compute"
   for_each = var.compute
 
-  compute_name  = each.key
+  compute_name  = "${var.hostname_prefix}-${each.value.hostname}"
   compute_image = "debian-cloud/debian-11"
   compute_size  = var.compute_size
   zone          = "${each.value.region}-${each.value.zone}"
   tags          = concat(var.default_tags, each.value.extra_tags)
-  region = each.value.region
+  region        = each.value.region
 
   network = google_compute_network.vpc.name
   subnetwork = google_compute_subnetwork.subnet[each.value.region].name
@@ -123,7 +123,7 @@ data "external" "bastion" {
   query = {
     project  = var.project_id
     zone     = "${module.compute["dirk1"].zone}"
-    instance = "dirk1"
+    instance = module.compute["dirk1"].name
     ssh_user = var.ssh_user
     ssh_private_key = var.ssh_private_key
     ssh_extra_args = var.ssh_extra_args
@@ -222,13 +222,15 @@ resource "kubernetes_deployment" "vouch1" {
 
           resources {
             limits = {
-              cpu    = "1"
-              memory = "2Gi"
+              cpu    = "0.25"
+              memory = "1.5Gi"
+              ephemeral-storage = "10Mi"
             }
 
             requests = {
-              cpu    = "1"
-              memory = "2Gi"
+              cpu    = "0.25"
+              memory = "1.5Gi"
+              ephemeral-storage = "10Mi"
             }
           }
         }
@@ -347,6 +349,19 @@ resource "kubernetes_deployment" "external_dns" {
           env {
             name  = "CF_API_EMAIL"
             value = var.cf_api_email
+          }
+          resources {
+            limits = {
+              cpu    = "0.25"
+              memory = "0.5Gi"
+              ephemeral-storage = "10Mi"
+            }
+
+            requests = {
+              cpu    = "0.25"
+              memory = "0.5Gi"
+              ephemeral-storage = "10Mi"
+            }
           }
         }
 
@@ -514,6 +529,19 @@ resource "kubernetes_deployment" "traefik" {
             name  = "CLOUDFLARE_EMAIL"
             value = var.cf_api_email
           }
+          resources {
+            limits = {
+              cpu    = "0.25"
+              memory = "0.5Gi"
+              ephemeral-storage = "10Mi"
+            }
+
+            requests = {
+              cpu    = "0.25"
+              memory = "0.5Gi"
+              ephemeral-storage = "10Mi"
+            }
+          }
         }
       }
     }
@@ -640,6 +668,19 @@ resource "kubernetes_deployment" "prometheus" {
             name       = "config"
             sub_path = "prometheus.yml"
           }
+          resources {
+            limits = {
+              cpu    = "0.25"
+              memory = "0.5Gi"
+              ephemeral-storage = "10Mi"
+            }
+
+            requests = {
+              cpu    = "0.25"
+              memory = "0.5Gi"
+              ephemeral-storage = "10Mi"
+            }
+          }
         }
 
         volume {
@@ -669,72 +710,6 @@ resource "kubernetes_service" "vouch_metrics" {
 
     selector = {
       vouch = "vouch1"
-    }
-
-    type = "NodePort"
-  }
-}
-
-resource "kubernetes_deployment" "whoami" {
-  metadata {
-    name = "whoami"
-
-    labels = {
-      app = "traefiklabs"
-
-      name = "whoami"
-    }
-  }
-
-  spec {
-    replicas = 2
-
-    selector {
-      match_labels = {
-        app = "traefiklabs"
-
-        task = "whoami"
-      }
-    }
-
-    template {
-      metadata {
-        labels = {
-          app = "traefiklabs"
-
-          task = "whoami"
-        }
-      }
-
-      spec {
-        container {
-          name  = "whoami"
-          image = "traefik/whoami"
-
-          port {
-            container_port = 80
-          }
-        }
-      }
-    }
-  }
-}
-
-resource "kubernetes_service" "whoami" {
-  metadata {
-    name = "whoami"
-  }
-
-  spec {
-    port {
-      name = "http"
-      port = 80
-    }
-
-    selector = {
-      app = "traefiklabs"
-
-      task = "whoami"
     }
 
     type = "NodePort"
