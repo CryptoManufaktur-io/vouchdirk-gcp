@@ -105,6 +105,12 @@ output "compute_addresses" {
 
 output "nat_address" {
   value = google_compute_address.nat.address
+  description = "Outgoing NAT address of Vouch and Dirk"
+}
+
+output "mev_address" {
+  value = kubernetes_service.traefik_service.status.0.load_balancer.0.ingress.0.ip
+  description = "MEV endpoint public IP, use for A record"
 }
 
 data "google_client_config" "default" {}
@@ -253,124 +259,6 @@ resource "kubernetes_deployment" "vouch1" {
           }
         }
       }
-    }
-  }
-}
-
-resource "kubernetes_service_account" "external_dns" {
-
-  metadata {
-    name = "external-dns"
-  }
-}
-
-resource "kubernetes_cluster_role" "external_dns" {
-
-  metadata {
-    name = "external-dns"
-  }
-
-  rule {
-    verbs      = ["get", "watch", "list"]
-    api_groups = [""]
-    resources  = ["services", "endpoints", "pods"]
-  }
-
-  rule {
-    verbs      = ["get", "watch", "list"]
-    api_groups = ["extensions", "networking.k8s.io"]
-    resources  = ["ingresses"]
-  }
-  
-  rule {
-    verbs      = ["get", "watch", "list"]
-    api_groups = [""]
-    resources  = ["endpoints"]
-  }
-  
-
-  rule {
-    verbs      = ["list", "watch"]
-    api_groups = [""]
-    resources  = ["nodes"]
-  }
-}
-
-resource "kubernetes_cluster_role_binding" "external_dns_viewer" {
-
-  metadata {
-    name = "external-dns-viewer"
-  }
-
-  subject {
-    kind      = "ServiceAccount"
-    name      = "external-dns"
-    namespace = "default"
-  }
-
-  role_ref {
-    api_group = "rbac.authorization.k8s.io"
-    kind      = "ClusterRole"
-    name      = "external-dns"
-  }
-}
-
-resource "kubernetes_deployment" "external_dns" {
-
-  metadata {
-    name = "external-dns"
-  }
-
-  spec {
-    selector {
-      match_labels = {
-        app = "external-dns"
-      }
-    }
-
-    template {
-      metadata {
-        labels = {
-          app = "external-dns"
-        }
-      }
-
-      spec {
-        container {
-          name  = "external-dns"
-          image = "registry.k8s.io/external-dns/external-dns:v0.13.2"
-          args  = ["--source=service", "--source=ingress", "--domain-filter=${var.cf_domain}", "--provider=cloudflare", "--registry=txt", "--txt-owner-id=${var.mev_subdomain}"]
-
-          env {
-            name  = "CF_API_KEY"
-            value = var.cf_api_key
-          }
-
-          env {
-            name  = "CF_API_EMAIL"
-            value = var.cf_api_email
-          }
-          resources {
-            limits = {
-              cpu    = "0.25"
-              memory = "0.5Gi"
-              ephemeral-storage = "10Mi"
-            }
-
-            requests = {
-              cpu    = "0.25"
-              memory = "0.5Gi"
-              ephemeral-storage = "10Mi"
-            }
-          }
-        }
-
-        service_account_name = "external-dns"
-      }
-    }
-
-    strategy {
-      type = "Recreate"
     }
   }
 }
@@ -556,11 +444,6 @@ resource "kubernetes_service" "traefik_service" {
 
   metadata {
     name = "traefik-service"
-
-    annotations = {
-      "external-dns.alpha.kubernetes.io/hostname" = "${var.mev_subdomain}.${var.cf_domain}"
-      "external-dns.alpha.kubernetes.io/ttl" = 120
-    }
   }
 
   spec {
@@ -577,7 +460,7 @@ resource "kubernetes_service" "traefik_service" {
 
     type = "LoadBalancer"
 
-    load_balancer_source_ranges = concat(var.vouch_https_in_addresses, ["${google_compute_address.nat.address}/32"])
+    load_balancer_source_ranges = var.vouch_https_in_addresses
   }
 }
 
@@ -603,19 +486,6 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
               }
             }
           }
-        }
-
-        path {
-          backend {
-            service {
-              name = "whoami"
-              port {
-                name = "http"
-              }
-            }
-          }
-
-          path = "/foo"
         }
       }
     }

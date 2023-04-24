@@ -1,5 +1,5 @@
 project_id = "vouchdirk"
-vouch_tag = "1.7.3"
+vouch_tag = "1.7.5"
 
 regions = {
   northamerica-northeast1 = { cidr = "10.108.0.0/20" }
