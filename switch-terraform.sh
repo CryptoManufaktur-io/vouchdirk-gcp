@@ -4,7 +4,7 @@
 kill $(ps aux | grep '[:]localhost:8888 -N -q -f' | awk '{print $2}')
 
 # GCloud
-if gcloud config configurations list | grep -q $(basename $(pwd)); then
+if gcloud config configurations list | grep -q "^$(basename $(pwd))"; then
     echo "Activate the config named $(basename $(pwd))"
     gcloud config configurations activate $(basename $(pwd))
 else
