@@ -85,3 +85,7 @@ variable "ssh_in_addresses" {
 variable "vouch_https_in_addresses" {
   type        = list(string)
 }
+
+variable "exiter_https_in_addresses" {
+  type        = list(string)
+}
