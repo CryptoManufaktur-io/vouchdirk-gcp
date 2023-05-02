@@ -183,6 +183,14 @@ resource "kubernetes_deployment" "vouch1" {
     }
   }
 
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].spec[0].container[0].security_context,
+      spec[0].template[0].spec[0].security_context,
+      spec[0].template[0].spec[0].toleration
+    ]
+  }
+
   spec {
     replicas = 1
 
@@ -382,6 +390,14 @@ resource "kubernetes_deployment" "traefik" {
     name = "traefik"
   }
 
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].spec[0].container[0].security_context,
+      spec[0].template[0].spec[0].security_context,
+      spec[0].template[0].spec[0].toleration
+    ]
+  }
+
   spec {
     replicas = 1
 
@@ -523,6 +539,14 @@ resource "kubernetes_deployment" "prometheus" {
     labels = {
       app = "prometheus"
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].spec[0].container[0].security_context,
+      spec[0].template[0].spec[0].security_context,
+      spec[0].template[0].spec[0].toleration
+    ]
   }
 
   spec {
