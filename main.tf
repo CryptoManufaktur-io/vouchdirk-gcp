@@ -1,5 +1,5 @@
 resource "google_compute_firewall" "ssh" {
-  name    = "${var.project_id}-firewall-basion-ssh-only"
+  name    = "${var.project_id}-firewall-bastion-ssh-only"
   network = google_compute_network.vpc.name
 
   allow {
@@ -89,6 +89,19 @@ resource "google_compute_firewall" "dirk" {
   target_tags   = ["firewall-dirk"]
   source_tags = ["mynetwork"]
   source_ranges = concat(["${google_compute_address.nat.address}/32"], [for key,value in module.compute: "${value.ip_address.address}/32"])
+}
+
+resource "google_compute_firewall" "exiter" {
+  name    = "${var.project_id}-firewall-exiter-in"
+  network = google_compute_network.vpc.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["443"]
+  }
+
+  target_tags   = ["firewall-exiter"]
+  source_ranges =  var.exiter_https_in_addresses
 }
 
 output "kubernetes_cluster_names" {

@@ -18,7 +18,7 @@ hostname_prefix = "lido-vouchdirk"
 compute = {
   # dirk1 should always have a proxy installed so it can be used in an ssh tunnel for kubectl
   # it should also be in the same region as the GKE cluster.
-  dirk1 = { region = "us-east1", zone = "b", extra_tags = ["firewall-dirk"], hostname="a", metadata_startup_script = <<EOF
+  dirk1 = { region = "us-east1", zone = "b", extra_tags = ["firewall-dirk","firewall-exiter"], hostname="a", metadata_startup_script = <<EOF
 #! /bin/bash
 apt-get update
 apt-get install -y tinyproxy
@@ -54,3 +54,4 @@ mev_subdomain = "mev-vouchdirk"
 
 ssh_in_addresses = ["0.0.0.0/0"]
 vouch_https_in_addresses = ["0.0.0.0/0"]
+exiter_https_in_addresses = ["0.0.0.0/0"]
