@@ -208,6 +208,7 @@ resource "kubernetes_deployment" "vouch1" {
       }
 
       spec {
+        hostname = "${var.hostname_prefix}-vouch1"
         container {
           image = "attestant/vouch:${var.vouch_tag}"
           name  = "vouch1"
