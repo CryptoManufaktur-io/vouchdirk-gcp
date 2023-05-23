@@ -14,8 +14,9 @@ resource "google_container_cluster" "primary" {
   network    = var.network
   subnetwork = var.subnetwork
 
-  vertical_pod_autoscaling {
-    enabled = true
+  ip_allocation_policy {
+    cluster_ipv4_cidr_block  = ""
+    services_ipv4_cidr_block = ""
   }
 
   private_cluster_config {
@@ -27,6 +28,14 @@ resource "google_container_cluster" "primary" {
   master_authorized_networks_config {
     cidr_blocks {
       cidr_block   = var.authorized_network
+    }
+  }
+
+  monitoring_config {
+    enable_components = ["SYSTEM_COMPONENTS"]
+    managed_prometheus {
+# This is mandatory for AutoPilot 1.25
+      enabled = true
     }
   }
 }
