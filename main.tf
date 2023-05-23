@@ -170,7 +170,10 @@ resource "kubernetes_secret" "vouch1-secret" {
   data = {
     "vouch1.crt" = "${file("${path.module}/config/certs/vouch1.crt")}"
     "vouch1.key" = "${file("${path.module}/config/certs/vouch1.key")}"
-    "dirk_authority.crt" = "${file("${path.module}/config/certs/dirk_authority.crt")}"
+    "dirk_authority.crt" = "${file("${path.module}/config/certs/dirk_authority.crt")}",
+    "tempo_client.crt" = "${file("${path.module}/config/certs/tempo_client.crt")}",
+    "tempo_client.key" = "${file("${path.module}/config/certs/tempo_client.key")}",
+    "tempo_authority.crt" = "${file("${path.module}/config/certs/tempo_authority.crt")}",
   }
 }
 
@@ -208,6 +211,7 @@ resource "kubernetes_deployment" "vouch1" {
       }
 
       spec {
+        hostname = "${var.hostname_prefix}-vouch1"
         container {
           image = "attestant/vouch:${var.vouch_tag}"
           name  = "vouch1"
@@ -244,6 +248,24 @@ resource "kubernetes_deployment" "vouch1" {
           volume_mount {
             mount_path = "/config/certs/dirk_authority.crt"
             sub_path = "dirk_authority.crt"
+            name       = "secret"
+          }
+
+          volume_mount {
+            mount_path = "/config/certs/tempo_client.crt"
+            sub_path = "tempo_client.crt"
+            name       = "secret"
+          }
+
+          volume_mount {
+            mount_path = "/config/certs/tempo_client.key"
+            sub_path = "tempo_client.key"
+            name       = "secret"
+          }
+
+          volume_mount {
+            mount_path = "/config/certs/tempo_authority.crt"
+            sub_path = "tempo_authority.crt"
             name       = "secret"
           }
 
