@@ -16,7 +16,7 @@ The infrastructure includes:
 - 1 subnet for the GKE cluster
 - 1 NAT gateway with reserved IP address for the Pods to connect to the internet
 
-The GKE cluster uses Authorized Networks and only traffic from the `dirk1` VM has access to the Control Plane. 
+The GKE cluster uses Authorized Networks and only traffic from the `dirk1` VM has access to the Control Plane.
 
 In order for terraform to create the multiple Kubernetes resources, an SSH tunnel is created to `dirk1` which then proxies the traffic to the Kubernetes Control Plane.
 
@@ -38,9 +38,8 @@ Vouch's MEV-boost service is exposed via Traefik on a Service with a Load Balanc
 - [gcloud cli](https://cloud.google.com/sdk/docs/install-sdk#installing_the_latest_version)
 
 ## Setup
-
 - Generate the [vouchdirk-docker](https://github.com/CryptoManufaktur-io/vouchdirk-docker/#initial-setup) `config/` folder and copy it to the root of project folder.
-- Initialize gcloud: 
+- Initialize gcloud:
 ```shell
 gcloud init
 gcloud auth application-default login
@@ -70,3 +69,15 @@ HTTPS_PROXY=localhost:8888 kubectl get pods
 ```
 
 Once finished, you can run `killall ssh` to kill the ssh tunnel or you can find the specific process ID and kill it if you need to keep other ssh processes running.
+
+## Development
+
+- Install dependencies:
+```shell
+npm install
+```
+- Install pre-commit: https://pre-commit.com/#installation
+- Install git hook scripts:
+```shel
+pre-commit install
+```

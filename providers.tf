@@ -4,7 +4,7 @@ terraform {
       source  = "hashicorp/google"
     }
   }
-  
+
    backend "gcs" {}
 }
 
