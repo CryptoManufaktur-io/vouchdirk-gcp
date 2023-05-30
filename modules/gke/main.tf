@@ -31,11 +31,4 @@ resource "google_container_cluster" "primary" {
     }
   }
 
-  monitoring_config {
-    enable_components = ["SYSTEM_COMPONENTS"]
-    managed_prometheus {
-# This is mandatory for AutoPilot 1.25
-      enabled = true
-    }
-  }
 }
