@@ -68,7 +68,7 @@ resource "google_compute_router_nat" "nat" {
   nat_ips = [google_compute_address.nat.self_link]
 
   source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
-  
+
   subnetwork {
     name                    = "gke-lido-subnet"
     source_ip_ranges_to_nat = ["ALL_IP_RANGES"]
@@ -226,7 +226,7 @@ resource "kubernetes_deployment" "vouch1" {
             sub_path = "vouch-ee.json"
             name       = "config"
           }
-          
+
           volume_mount {
             mount_path = "/config/vouch.yml"
             sub_path = "vouch.yml"
@@ -292,7 +292,7 @@ resource "kubernetes_deployment" "vouch1" {
             default_mode = "0644"
           }
         }
-        
+
         volume {
           name = "secret"
 
@@ -438,7 +438,7 @@ resource "kubernetes_deployment" "traefik" {
 
       spec {
         service_account_name = "traefik-account"
-        
+
         container {
           name  = "traefik"
           image = "traefik:latest"
