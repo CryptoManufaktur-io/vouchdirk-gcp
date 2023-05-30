@@ -16,4 +16,4 @@ if ! gcloud auth list | grep -q cryptomanufaktur.io; then
 fi
 
 # Terraform
-terraform init -backend-config=backend.conf -reconfigure
+terraform init -backend-config=backend.conf -reconfigure -upgrade
