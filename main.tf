@@ -208,6 +208,16 @@ resource "kubernetes_deployment" "vouch1" {
         labels = {
           vouch = "vouch1"
         }
+        annotations = {
+          "vouch.yml" = filesha256("${path.module}/config/vouch1.yml")
+          "vouch-ee.json" = filesha256("${path.module}/config/vouch-ee.json")
+          "vouch1.crt" = filesha256("${path.module}/config/certs/vouch1.crt")
+          "vouch1.key" = filesha256("${path.module}/config/certs/vouch1.key")
+          "dirk_authority.crt" = filesha256("${path.module}/config/certs/dirk_authority.crt")
+          "tempo_client.crt" = filesha256("${path.module}/config/certs/tempo_client.crt")
+          "tempo_client.key" = filesha256("${path.module}/config/certs/tempo_client.key")
+          "tempo_authority.crt" = filesha256("${path.module}/config/certs/tempo_authority.crt")
+        }
       }
 
       spec {
@@ -584,6 +594,10 @@ resource "kubernetes_deployment" "prometheus" {
       metadata {
         labels = {
           app = "prometheus"
+        }
+        annotations = {
+          "prometheus-custom.yml" = filesha256("${path.module}/prometheus-custom.yml")
+          "prometheus.yml" = filesha256("${path.module}/prometheus.yml")
         }
       }
 
