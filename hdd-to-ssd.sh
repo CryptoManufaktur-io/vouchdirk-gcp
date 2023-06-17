@@ -35,9 +35,7 @@ echo "$instances" | while IFS=',' read -r instance zone; do
   fi
   echo "Will switch $disk_type disk $disks for instance $instance in zone $zone to pd-ssd"
   echo
-  echo "Stopping instance $instance"
   gcloud compute instances stop $instance --project=$PROJECT_ID --zone=$zone
-  echo "Taking snapshot of old disk"
   gcloud compute disks snapshot $disks --project=$PROJECT_ID --zone=$zone --snapshot-names=${instance}-snapshot-hdd
   echo "Creating new disk from snapshot"
   gcloud compute disks create ${disks}-ssd --project=$PROJECT_ID --zone=$zone --source-snapshot=${instance}-snapshot-hdd --type=pd-ssd
@@ -45,7 +43,6 @@ echo "$instances" | while IFS=',' read -r instance zone; do
   gcloud compute instances detach-disk $instance --project=$PROJECT_ID --zone=$zone --disk=$disks
   echo "Attach the SSD disk"
   gcloud compute instances attach-disk $instance --project=$PROJECT_ID --zone=$zone --disk=${disks}-ssd --boot
-  echo "Start the instance"
   gcloud compute instances start $instance --project=$PROJECT_ID --zone=$zone
   echo "Delete the HDD disk"
   gcloud compute disks delete $disks --project=$PROJECT_ID --zone=$zone --quiet
