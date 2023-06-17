@@ -16,7 +16,7 @@ module "compute" {
   for_each = var.compute
 
   compute_name  = "${var.hostname_prefix}-${each.value.hostname}"
-  compute_image = "debian-cloud/debian-12"
+  compute_image = var.compute_image
   compute_size  = var.compute_size
   zone          = "${each.value.region}-${each.value.zone}"
   tags          = concat(var.default_tags, each.value.extra_tags)

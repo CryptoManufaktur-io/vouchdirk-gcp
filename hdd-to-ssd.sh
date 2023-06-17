@@ -43,6 +43,8 @@ echo "$instances" | while IFS=',' read -r instance zone; do
   gcloud compute instances detach-disk $instance --project=$PROJECT_ID --zone=$zone --disk=$disks
   echo "Attach the SSD disk"
   gcloud compute instances attach-disk $instance --project=$PROJECT_ID --zone=$zone --disk=${disks}-ssd --boot
+  echo "Set disk to auto-delete"
+  gcloud compute instances set-disk-auto-delete $instance --project=$PROJECT_ID --disk=${disks}-ssd --auto-delete
   gcloud compute instances start $instance --project=$PROJECT_ID --zone=$zone
   echo "Delete the HDD disk"
   gcloud compute disks delete $disks --project=$PROJECT_ID --zone=$zone --quiet

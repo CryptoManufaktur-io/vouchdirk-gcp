@@ -38,7 +38,8 @@ resource "google_compute_instance" "default" {
 
   lifecycle {
     ignore_changes = [
-      name
+      name,
+      boot_disk[0].initialize_params[0].image
     ]
   }
 }

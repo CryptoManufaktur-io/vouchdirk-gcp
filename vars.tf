@@ -13,6 +13,11 @@ variable "compute_size" {
   type        = string
 }
 
+variable "compute_image" {
+  description = "Compute Instance image"
+  type        = string
+}
+
 variable "project_id" {
   description = "Project ID"
   type        = string

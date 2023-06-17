@@ -11,6 +11,7 @@ regions = {
 
 # Compute configuration
 compute_size = "e2-small"
+compute_image = "debian-cloud/debian-12"
 default_tags = ["ssh"]
 
 hostname_prefix = "lido-vouchdirk"
