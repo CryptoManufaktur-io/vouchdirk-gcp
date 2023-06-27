@@ -51,7 +51,17 @@ gcloud auth application-default login
 ```shell
 terraform init -backend-config=backend.conf
 ```
+
+When switching between multiple copies of this project for multiple environments, you can use `switch-terraform.sh`.
+
 - Deploy
+
+On initial deploy, use
+```shell
+./deploy.sh
+```
+
+Subsequent changes come in with
 ```shell
 terraform apply
 ```
