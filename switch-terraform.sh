@@ -12,11 +12,21 @@ else
     gcloud init
 fi
 
+active_account=$(gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>/dev/null)
+
 if gcloud auth application-default print-access-token &> /dev/null; then
     echo "Application default credentials are set."
 else
     echo "Application default credentials are not yet set."
     gcloud auth application-default login
+fi
+
+if [[ -z "$active_account" ]]
+then
+    echo "No interactive gcloud login yet"
+    gcloud auth login
+else
+    echo "Active gcloud account is: $active_account"
 fi
 
 # Terraform
