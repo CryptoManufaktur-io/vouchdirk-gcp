@@ -39,8 +39,9 @@ gke = {
 }
 
 ssh_user = "debian"
-ssh_pub_key = "/path/to/public.pub"
-ssh_private_key = "/path/to/private.pem"
+# The naming convention matters: For key.pem, you need key.pem.pub so that terraform works
+ssh_pub_key = "/path/to/key.pem.pub"
+ssh_private_key = "/path/to/key.pem"
 
 # If extra arguments are needed for the ssh command to connect to dirk1 (e.g: going through a Jump host, they can be added here).
 ssh_extra_args = ""
