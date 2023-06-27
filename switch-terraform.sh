@@ -11,7 +11,11 @@ else
     echo "Create a config named $(basename $(pwd)) with matching Google project; don't set a default compute region"
     gcloud init
 fi
-if ! gcloud auth list | grep -q cryptomanufaktur.io; then
+
+if gcloud auth application-default print-access-token &> /dev/null; then
+    echo "Application default credentials are set."
+else
+    echo "Application default credentials are not yet set."
     gcloud auth application-default login
 fi
 
