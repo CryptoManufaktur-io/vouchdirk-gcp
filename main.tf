@@ -283,13 +283,13 @@ resource "kubernetes_deployment" "vouch1" {
             limits = {
               cpu    = "0.25"
               memory = "0.5Gi"
-              ephemeral-storage = "10Mi"
+              ephemeral-storage = "20Mi"
             }
 
             requests = {
               cpu    = "0.25"
               memory = "0.5Gi"
-              ephemeral-storage = "10Mi"
+              ephemeral-storage = "20Mi"
             }
           }
         }
