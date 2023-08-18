@@ -67,11 +67,7 @@ variable "acme_email" {
   type = string
 }
 
-variable "cf_api_email" {
-  type        = string
-}
-
-variable "cf_api_key" {
+variable "cf_api_token" {
   type        = string
 }
 

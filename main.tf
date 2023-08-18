@@ -461,7 +461,9 @@ resource "kubernetes_deployment" "traefik" {
             "--certificatesresolvers.letsencrypt.acme.email=${var.acme_email}",
             "--entrypoints.websecure.address=:443",
             "--entrypoints.websecure.http.tls=true",
-            "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
+            "--entrypoints.websecure.http.tls.certResolver=letsencrypt",
+            "--metrics",
+            "--metrics.prometheus"
           ]
 
           port {
@@ -470,14 +472,10 @@ resource "kubernetes_deployment" "traefik" {
           }
 
           env {
-            name  = "CLOUDFLARE_API_KEY"
-            value = var.cf_api_key
+            name  = "CF_DNS_API_TOKEN"
+            value = var.cf_api_token
           }
 
-          env {
-            name  = "CLOUDFLARE_EMAIL"
-            value = var.cf_api_email
-          }
           resources {
             limits = {
               cpu    = "0.25"
@@ -653,6 +651,26 @@ resource "kubernetes_service" "vouch_metrics" {
 
     selector = {
       vouch = "vouch1"
+    }
+
+    type = "NodePort"
+  }
+}
+
+resource "kubernetes_service" "traefik_metrics" {
+
+  metadata {
+    name = "traefik-metrics"
+  }
+
+  spec {
+    port {
+      name        = "traefik-metrics"
+      port        = 8080
+    }
+
+    selector = {
+      traefik = "traefik"
     }
 
     type = "NodePort"

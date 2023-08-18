@@ -48,8 +48,7 @@ ssh_extra_args = ""
 
 # Cloudflare is used to set the DNS records and generate LetsEncrypt ssl certs for the mev-boost service.
 acme_email = "user@example.com"
-cf_api_email = "user@example.com"
-cf_api_key = "APIKEY"
+cf_api_token = "APITOKEN"
 cf_domain = "example.com"
 
 mev_subdomain = "mev-vouchdirk"
