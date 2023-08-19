@@ -412,6 +412,23 @@ resource "kubernetes_cluster_role_binding" "traefik_role_binding" {
   }
 }
 
+resource "kubernetes_persistent_volume_claim" "traefik_pvc" {
+  metadata {
+    name      = "traefik-pvc"
+  }
+
+  spec {
+    access_modes = ["ReadWriteOnce"]
+
+    resources {
+      requests = {
+        storage = "1Mi"
+      }
+    }
+  }
+}
+
+
 resource "kubernetes_deployment" "traefik" {
 
   depends_on = [
@@ -459,6 +476,7 @@ resource "kubernetes_deployment" "traefik" {
             "--certificatesresolvers.letsencrypt.acme.dnschallenge=true",
             "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare",
             "--certificatesresolvers.letsencrypt.acme.email=${var.acme_email}",
+            "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json",
             "--entrypoints.websecure.address=:443",
             "--entrypoints.websecure.http.tls=true",
             "--entrypoints.websecure.http.tls.certResolver=letsencrypt",
@@ -476,6 +494,11 @@ resource "kubernetes_deployment" "traefik" {
             value = var.cf_api_token
           }
 
+          volume_mount {
+            mount_path = "/letsencrypt"
+            name      = "traefik-certs"
+          }
+
           resources {
             limits = {
               cpu    = "0.25"
@@ -488,6 +511,12 @@ resource "kubernetes_deployment" "traefik" {
               memory = "0.5Gi"
               ephemeral-storage = "10Mi"
             }
+          }
+        }
+        volume {
+          name = "traefik-certs"
+          persistent_volume_claim {
+            claim_name = "traefik-pvc"
           }
         }
       }
@@ -563,6 +592,22 @@ resource "kubernetes_config_map" "prometheus-config" {
   }
 }
 
+resource "kubernetes_persistent_volume_claim" "prometheus_pvc" {
+  metadata {
+    name      = "prometheus-pvc"
+  }
+
+  spec {
+    access_modes = ["ReadWriteOnce"]
+
+    resources {
+      requests = {
+        storage = "2Gi"
+      }
+    }
+  }
+}
+
 resource "kubernetes_deployment" "prometheus" {
   metadata {
     name = "prometheus"
@@ -600,14 +645,28 @@ resource "kubernetes_deployment" "prometheus" {
       }
 
       spec {
+        init_container {
+          name  = "volume-permission"
+          image = "busybox"
+          command = ["sh", "-c", "chown -R 65534:65534 /prometheus"]
+
+          volume_mount {
+            name       = "prometheus-data"
+            mount_path = "/prometheus"
+          }
+        }
         container {
-          image = "ubuntu/prometheus:latest"
+          image = "prom/prometheus:latest"
           name  = "prometheus"
 
           volume_mount {
             mount_path = "/etc/prometheus/prometheus.yml"
             name       = "config"
             sub_path = "prometheus.yml"
+          }
+          volume_mount {
+            mount_path = "/prometheus"
+            name       = "prometheus-data"
           }
           resources {
             limits = {
@@ -623,7 +682,12 @@ resource "kubernetes_deployment" "prometheus" {
             }
           }
         }
-
+        volume {
+          name = "prometheus-data"
+          persistent_volume_claim {
+            claim_name = "prometheus-pvc"
+          }
+        }
         volume {
           name = "config"
 
