@@ -43,5 +43,6 @@ config/
 .DS_Store
 
 prometheus-custom.yml
+promtail-lokiurl.yml
 
 node_modules/
