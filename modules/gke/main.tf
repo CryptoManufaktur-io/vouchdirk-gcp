@@ -30,10 +30,4 @@ resource "google_container_cluster" "primary" {
       cidr_block   = var.authorized_network
     }
   }
-
-  dns_config {
-    cluster_dns = "CLOUD_DNS"
-    cluster_dns_domain = "cluster.local"
-    cluster_dns_scope  = "CLUSTER_SCOPE"
-  }
 }
