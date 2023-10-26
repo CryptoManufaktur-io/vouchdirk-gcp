@@ -1,8 +1,9 @@
+#!/usr/bin/env bash
+
 # Switch existing compute instance boot disks in a project to pd-ssd
 # Does not confirm, use with caution!
 # Script is meant as a fix for legacy deployments, only.
 
-#!/usr/bin/env bash
 set -euo pipefail
 
 if [ -z "${1+x}" ]; then
@@ -27,7 +28,7 @@ echo "$instances" | while IFS=',' read -r instance zone; do
     echo "This instance has $num_disks, which is unexpected. The script only knows how to handle one disk. Skipping."
     continue
   fi
-  
+
   disk_type=$(gcloud compute disks describe $disks --project=$PROJECT_ID --zone=$zone --format="value(type.basename())")
   if [ ! "${disk_type}" = "pd-standard" ]; then
     echo "Disk $disks is of type $disk_type. This script only migrates pd-standard. Skipping."

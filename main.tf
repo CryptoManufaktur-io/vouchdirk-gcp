@@ -580,21 +580,94 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
   }
 }
 
-# Prometheus
-
-resource "kubernetes_config_map" "prometheus-config" {
+# Grafana agent
+resource "kubernetes_cluster_role" "grafana-agent-monitoring-cluster-role" {
   metadata {
-    name = "prometheus-config"
+    name = "grafana-agent-monitoring-cluster-role"
   }
 
-  data = {
-    "prometheus.yml" = "${file("${path.module}/prometheus.yml")}${file("${path.module}/prometheus-custom.yml")}"
+  rule {
+    api_groups = [""]
+    resources  = ["nodes", "nodes/proxy", "services", "endpoints", "pods"]
+    verbs      = ["get", "list", "watch"]
   }
 }
 
-resource "kubernetes_persistent_volume_claim" "prometheus_pvc" {
+resource "kubernetes_service_account" "grafana-agent-monitoring-service-account" {
   metadata {
-    name      = "prometheus-pvc"
+    name = "grafana-agent-monitoring-service-account"
+  }
+}
+
+resource "kubernetes_cluster_role_binding" "grafana-agent-monitoring-cluster-role-binding" {
+  metadata {
+    name = "grafana-agent-monitoring-cluster-role-binding"
+  }
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = "grafana-agent-monitoring-cluster-role"
+  }
+  subject {
+    kind      = "ServiceAccount"
+    name      = "grafana-agent-monitoring-service-account"
+    namespace = "default"
+  }
+}
+
+resource "kubernetes_config_map" "grafana-agent-entrypoint-config" {
+  metadata {
+    name = "grafana-agent-entrypoint-config"
+  }
+
+  data = {
+    "grafana-agent-entrypoint.sh" = "${file("${path.module}/grafana-agent-entrypoint.sh")}"
+  }
+}
+
+resource "kubernetes_config_map" "grafana-agent-promtail-config" {
+  metadata {
+    name = "grafana-agent-promtail-config"
+  }
+
+  data = {
+    "promtail.yml" = "${file("${path.module}/promtail.yml")}"
+  }
+}
+
+resource "kubernetes_config_map" "grafana-agent-promtail-lokiurl-config" {
+  metadata {
+    name = "grafana-agent-promtail-lokiurl-config"
+  }
+
+  data = {
+    "promtail-lokiurl.yml" = "${file("${path.module}/promtail-lokiurl.yml")}"
+  }
+}
+
+resource "kubernetes_config_map" "grafana-agent-prometheus-config" {
+  metadata {
+    name = "grafana-agent-prometheus-config"
+  }
+
+  data = {
+    "prometheus.yml" = "${file("${path.module}/prometheus.yml")}"
+  }
+}
+
+resource "kubernetes_config_map" "grafana-agent-prometheus-remoteurl-config" {
+  metadata {
+    name = "grafana-agent-prometheus-remoteurl-config"
+  }
+
+  data = {
+    "prometheus-remoteurl.yml" = "${file("${path.module}/prometheus-remoteurl.yml")}"
+  }
+}
+
+resource "kubernetes_persistent_volume_claim" "grafana-agent-pvc" {
+  metadata {
+    name      = "grafana-agent-pvc"
   }
 
   spec {
@@ -608,11 +681,11 @@ resource "kubernetes_persistent_volume_claim" "prometheus_pvc" {
   }
 }
 
-resource "kubernetes_deployment" "prometheus" {
+resource "kubernetes_deployment" "grafana-agent" {
   metadata {
-    name = "prometheus"
+    name = "grafana-agent"
     labels = {
-      app = "prometheus"
+      app = "grafana-agent"
     }
   }
 
@@ -629,44 +702,73 @@ resource "kubernetes_deployment" "prometheus" {
 
     selector {
       match_labels = {
-        app = "prometheus"
+        app = "grafana-agent"
       }
     }
 
     template {
       metadata {
         labels = {
-          app = "prometheus"
+          app = "grafana-agent"
         }
         annotations = {
-          "prometheus-custom.yml" = filesha256("${path.module}/prometheus-custom.yml")
+          "grafana-agent-entrypoint.sh" = filesha256("${path.module}/grafana-agent-entrypoint.sh")
+          "promtail.yml" = filesha256("${path.module}/promtail.yml")
+          "promtail-lokiurl.yml" = filesha256("${path.module}/promtail-lokiurl.yml")
+          "prometheus-remoteurl.yml" = filesha256("${path.module}/prometheus-remoteurl.yml")
           "prometheus.yml" = filesha256("${path.module}/prometheus.yml")
         }
       }
 
       spec {
-        init_container {
-          name  = "volume-permission"
-          image = "busybox"
-          command = ["sh", "-c", "chown -R 65534:65534 /prometheus"]
-
-          volume_mount {
-            name       = "prometheus-data"
-            mount_path = "/prometheus"
-          }
-        }
+        service_account_name = "grafana-agent-monitoring-service-account"
         container {
-          image = "prom/prometheus:latest"
-          name  = "prometheus"
+          image = "grafana/agent:latest"
+          name  = "grafana-agent"
+          env {
+            name = "HOSTNAME"
+            value_from {
+              field_ref {
+                api_version = "v1"
+                field_path = "spec.nodeName"
+              }
+            }
+          }
+          command = ["/usr/bin/bash", "-c", "/configs/grafana-agent-entrypoint.sh ${var.project_id}-vouch"]
 
           volume_mount {
-            mount_path = "/etc/prometheus/prometheus.yml"
-            name       = "config"
+            mount_path = "/configs/grafana-agent-entrypoint.sh"
+            name       = "grafana-agent-entrypoint-config"
+            sub_path = "grafana-agent-entrypoint.sh"
+          }
+          volume_mount {
+            mount_path = "/configs/promtail.yml"
+            name       = "grafana-agent-promtail-config"
+            sub_path = "promtail.yml"
+          }
+          volume_mount {
+            mount_path = "/configs/promtail-lokiurl.yml"
+            name       = "grafana-agent-promtail-lokiurl-config"
+            sub_path = "promtail-lokiurl.yml"
+          }
+          volume_mount {
+            mount_path = "/configs/prometheus.yml"
+            name       = "grafana-agent-prometheus-config"
             sub_path = "prometheus.yml"
           }
           volume_mount {
-            mount_path = "/prometheus"
-            name       = "prometheus-data"
+            mount_path = "/configs/prometheus-remoteurl.yml"
+            name       = "grafana-agent-prometheus-remoteurl-config"
+            sub_path = "prometheus-remoteurl.yml"
+          }
+          volume_mount {
+            mount_path = "/etc/agent/data"
+            name       = "grafana-agent-data"
+          }
+          volume_mount {
+            mount_path = "/var/log/pods"
+            name       = "grafana-agent-pods"
+            read_only = true
           }
           resources {
             limits = {
@@ -682,18 +784,58 @@ resource "kubernetes_deployment" "prometheus" {
             }
           }
         }
+
         volume {
-          name = "prometheus-data"
+          name = "grafana-agent-data"
           persistent_volume_claim {
-            claim_name = "prometheus-pvc"
+            claim_name = "grafana-agent-pvc"
           }
         }
         volume {
-          name = "config"
+          name = "grafana-agent-entrypoint-config"
 
           config_map {
-            name = "prometheus-config"
+            name = "grafana-agent-entrypoint-config"
+            default_mode = "0775"
+          }
+        }
+        volume {
+          name = "grafana-agent-promtail-config"
+
+          config_map {
+            name = "grafana-agent-promtail-config"
             default_mode = "0644"
+          }
+        }
+        volume {
+          name = "grafana-agent-promtail-lokiurl-config"
+
+          config_map {
+            name = "grafana-agent-promtail-lokiurl-config"
+            default_mode = "0644"
+          }
+        }
+        volume {
+          name = "grafana-agent-prometheus-config"
+
+          config_map {
+            name = "grafana-agent-prometheus-config"
+            default_mode = "0644"
+          }
+        }
+        volume {
+          name = "grafana-agent-prometheus-remoteurl-config"
+
+          config_map {
+            name = "grafana-agent-prometheus-remoteurl-config"
+            default_mode = "0644"
+          }
+        }
+        volume {
+          name = "grafana-agent-pods"
+
+          host_path {
+            path = "/var/log/pods"
           }
         }
       }
