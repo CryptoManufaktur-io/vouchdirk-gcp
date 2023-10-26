@@ -7,6 +7,8 @@ kill $(ps aux | grep '[:]localhost:8888 -N -q -f' | awk '{print $2}')
 if gcloud config configurations list | grep -q "^$(basename $(pwd))"; then
     echo "Activate the config named $(basename $(pwd))"
     gcloud config configurations activate $(basename $(pwd))
+    echo "Set quota project to $(basename $(pwd))"
+    gcloud auth application-default set-quota-project $(basename $(pwd))
 else
     echo "Create a config named $(basename $(pwd)) with matching Google project; don't set a default compute region"
     gcloud init
