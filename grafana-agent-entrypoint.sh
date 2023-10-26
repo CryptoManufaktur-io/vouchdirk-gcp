@@ -18,9 +18,9 @@ EOF
 # -----------------------------------------------------------------------------------------------------
 # Set metrics section
 sed -e 's/^/      /' "$WORK_DIR/prometheus.yml" >> "$WORK_DIR/agent.yml"
-if [ -s "$WORK_DIR/prometheus-custom.yml" ]; then
+if [ -s "$WORK_DIR/prometheus-remoteurl.yml" ]; then
   echo >> "$WORK_DIR/agent.yml"
-  sed -e 's/^/  /' "$WORK_DIR/prometheus-custom.yml" >> "$WORK_DIR/agent.yml"
+  sed -e 's/^/  /' "$WORK_DIR/prometheus-remoteurl.yml" >> "$WORK_DIR/agent.yml"
 fi
 
 # -----------------------------------------------------------------------------------------------------

@@ -7,7 +7,7 @@ The infrastructure includes:
 - 5 dirk VMs with reserved IP addresses
 - 1 GKE [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview#what-is-autopilot) Private Cluster, running:
     - Vouch
-    - Prometheus
+    - Grafana agent (for prometheus metrics and logs)
     - ExternalDNS
     - Traefik
 - dirk firewall to allow port 13141 traffic from the other dirks and from vouch
@@ -47,8 +47,7 @@ gcloud auth login
 ```
 - Copy `backend.conf.sample` to `backend.conf` and set the Bucket name and Prefix for Terraform state data.
 - Copy `terraform.tfvars.sample` to `terraform.tfvars` and modify as needed.
-- TO REMOVE ONCE PROMETHEUS IS REPLACED WITH GRAFANA AGENT: Copy `prometheus-custom.yml.sample` to `prometheus-custom.yml` and modify as needed. Prometheus is not exposed in this use case and remote write is expected.
-- Copy `prometheus-custom-agent.yml.sample` to `prometheus-custom-agent.yml` and modify as needed. Grafana agent will scrape prometheus metrics and remote write to a server with the details provided on this file.
+- Copy `prometheus-remoteurl.yml.sample` to `prometheus-remoteurl.yml` and modify as needed. Grafana agent will scrape prometheus metrics and remote write to a server with the details provided on this file.
 - Copy `promtail-lokiurl.yml.sample` to `promtail-lokiurl.yml` and modify as needed. Grafana agent will collect logs of pods running in the kubernetes and send them to remote loki using the details on this file.
 - Initialize terraform:
 ```shell

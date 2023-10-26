@@ -42,8 +42,7 @@ config/
 
 .DS_Store
 
-prometheus-custom.yml
-prometheus-custom-agent.yml
+prometheus-remoteurl.yml
 promtail-lokiurl.yml
 
 node_modules/

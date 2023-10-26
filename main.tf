@@ -580,127 +580,6 @@ resource "kubernetes_ingress_v1" "vouch_ingress" {
   }
 }
 
-# Prometheus
-
-resource "kubernetes_config_map" "prometheus-config" {
-  metadata {
-    name = "prometheus-config"
-  }
-
-  data = {
-    "prometheus.yml" = "${file("${path.module}/prometheus.yml")}${file("${path.module}/prometheus-custom.yml")}"
-  }
-}
-
-resource "kubernetes_persistent_volume_claim" "prometheus_pvc" {
-  metadata {
-    name      = "prometheus-pvc"
-  }
-
-  spec {
-    access_modes = ["ReadWriteOnce"]
-
-    resources {
-      requests = {
-        storage = "2Gi"
-      }
-    }
-  }
-}
-
-resource "kubernetes_deployment" "prometheus" {
-  metadata {
-    name = "prometheus"
-    labels = {
-      app = "prometheus"
-    }
-  }
-
-  lifecycle {
-    ignore_changes = [
-      spec[0].template[0].spec[0].container[0].security_context,
-      spec[0].template[0].spec[0].security_context,
-      spec[0].template[0].spec[0].toleration
-    ]
-  }
-
-  spec {
-    replicas = 1
-
-    selector {
-      match_labels = {
-        app = "prometheus"
-      }
-    }
-
-    template {
-      metadata {
-        labels = {
-          app = "prometheus"
-        }
-        annotations = {
-          "prometheus-custom.yml" = filesha256("${path.module}/prometheus-custom.yml")
-          "prometheus.yml" = filesha256("${path.module}/prometheus.yml")
-        }
-      }
-
-      spec {
-        init_container {
-          name  = "volume-permission"
-          image = "busybox"
-          command = ["sh", "-c", "chown -R 65534:65534 /prometheus"]
-
-          volume_mount {
-            name       = "prometheus-data"
-            mount_path = "/prometheus"
-          }
-        }
-        container {
-          image = "prom/prometheus:latest"
-          name  = "prometheus"
-
-          volume_mount {
-            mount_path = "/etc/prometheus/prometheus.yml"
-            name       = "config"
-            sub_path = "prometheus.yml"
-          }
-          volume_mount {
-            mount_path = "/prometheus"
-            name       = "prometheus-data"
-          }
-          resources {
-            limits = {
-              cpu    = "0.25"
-              memory = "0.5Gi"
-              ephemeral-storage = "10Mi"
-            }
-
-            requests = {
-              cpu    = "0.25"
-              memory = "0.5Gi"
-              ephemeral-storage = "10Mi"
-            }
-          }
-        }
-        volume {
-          name = "prometheus-data"
-          persistent_volume_claim {
-            claim_name = "prometheus-pvc"
-          }
-        }
-        volume {
-          name = "config"
-
-          config_map {
-            name = "prometheus-config"
-            default_mode = "0644"
-          }
-        }
-      }
-    }
-  }
-}
-
 # Grafana agent
 resource "kubernetes_cluster_role" "grafana-agent-monitoring-cluster-role" {
   metadata {
@@ -776,13 +655,13 @@ resource "kubernetes_config_map" "grafana-agent-prometheus-config" {
   }
 }
 
-resource "kubernetes_config_map" "grafana-agent-prometheus-custom-config" {
+resource "kubernetes_config_map" "grafana-agent-prometheus-remoteurl-config" {
   metadata {
-    name = "grafana-agent-prometheus-custom-config"
+    name = "grafana-agent-prometheus-remoteurl-config"
   }
 
   data = {
-    "prometheus-custom.yml" = "${file("${path.module}/prometheus-custom-agent.yml")}"
+    "prometheus-remoteurl.yml" = "${file("${path.module}/prometheus-remoteurl.yml")}"
   }
 }
 
@@ -836,7 +715,7 @@ resource "kubernetes_deployment" "grafana-agent" {
           "grafana-agent-entrypoint.sh" = filesha256("${path.module}/grafana-agent-entrypoint.sh")
           "promtail.yml" = filesha256("${path.module}/promtail.yml")
           "promtail-lokiurl.yml" = filesha256("${path.module}/promtail-lokiurl.yml")
-          "prometheus-custom.yml" = filesha256("${path.module}/prometheus-custom.yml")
+          "prometheus-remoteurl.yml" = filesha256("${path.module}/prometheus-remoteurl.yml")
           "prometheus.yml" = filesha256("${path.module}/prometheus.yml")
         }
       }
@@ -855,7 +734,7 @@ resource "kubernetes_deployment" "grafana-agent" {
               }
             }
           }
-          command = ["/usr/bin/bash", "-c", "/configs/grafana-agent-entrypoint.sh ${var.project_id}-vouch-kube"]
+          command = ["/usr/bin/bash", "-c", "/configs/grafana-agent-entrypoint.sh ${var.project_id}-vouch"]
 
           volume_mount {
             mount_path = "/configs/grafana-agent-entrypoint.sh"
@@ -878,9 +757,9 @@ resource "kubernetes_deployment" "grafana-agent" {
             sub_path = "prometheus.yml"
           }
           volume_mount {
-            mount_path = "/configs/prometheus-custom.yml"
-            name       = "grafana-agent-prometheus-custom-config"
-            sub_path = "prometheus-custom.yml"
+            mount_path = "/configs/prometheus-remoteurl.yml"
+            name       = "grafana-agent-prometheus-remoteurl-config"
+            sub_path = "prometheus-remoteurl.yml"
           }
           volume_mount {
             mount_path = "/etc/agent/data"
@@ -945,10 +824,10 @@ resource "kubernetes_deployment" "grafana-agent" {
           }
         }
         volume {
-          name = "grafana-agent-prometheus-custom-config"
+          name = "grafana-agent-prometheus-remoteurl-config"
 
           config_map {
-            name = "grafana-agent-prometheus-custom-config"
+            name = "grafana-agent-prometheus-remoteurl-config"
             default_mode = "0644"
           }
         }
