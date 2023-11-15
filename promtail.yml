@@ -8,9 +8,17 @@ logs:
       - job_name: kubernetes-pods
         pipeline_stages:
           - cri: {}
+          - labeldrop:
+              - filename
+              - app
+              - namespace
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_promtail_io_logs]
+            action: keep
+            regex: true
+
           - source_labels: []
             target_label: server
             replacement: SERVER_LABEL_HOSTNAME
@@ -30,24 +38,24 @@ logs:
             action: replace
             target_label: app
 
-          - source_labels:
-              - __meta_kubernetes_pod_label_app_kubernetes_io_instance
-              - __meta_kubernetes_pod_label_instance
-            regex: ^;*([^;]+)(;.*)?$
-            action: replace
-            target_label: instance
+          # - source_labels:
+          #     - __meta_kubernetes_pod_label_app_kubernetes_io_instance
+          #     - __meta_kubernetes_pod_label_instance
+          #   regex: ^;*([^;]+)(;.*)?$
+          #   action: replace
+          #   target_label: instance
 
-          - source_labels:
-              - __meta_kubernetes_pod_label_app_kubernetes_io_component
-              - __meta_kubernetes_pod_label_component
-            regex: ^;*([^;]+)(;.*)?$
-            action: replace
-            target_label: component
+          # - source_labels:
+          #     - __meta_kubernetes_pod_label_app_kubernetes_io_component
+          #     - __meta_kubernetes_pod_label_component
+          #   regex: ^;*([^;]+)(;.*)?$
+          #   action: replace
+          #   target_label: component
 
-          - source_labels:
-            - __meta_kubernetes_pod_node_name
-            action: replace
-            target_label: node_name
+          # - source_labels:
+          #   - __meta_kubernetes_pod_node_name
+          #   action: replace
+          #   target_label: node_name
 
           - source_labels:
             - __meta_kubernetes_namespace
@@ -62,15 +70,15 @@ logs:
             action: replace
             target_label: job
 
-          - source_labels:
-            - __meta_kubernetes_pod_name
-            action: replace
-            target_label: pod
+          # - source_labels:
+          #   - __meta_kubernetes_pod_name
+          #   action: replace
+          #   target_label: pod
 
           - source_labels:
             - __meta_kubernetes_pod_container_name
             action: replace
-            target_label: container
+            target_label: container_name
 
           - source_labels:
             - __meta_kubernetes_pod_uid

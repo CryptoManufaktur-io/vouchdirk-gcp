@@ -217,6 +217,7 @@ resource "kubernetes_deployment" "vouch1" {
           "tempo_client.crt" = filesha256("${path.module}/config/certs/tempo_client.crt")
           "tempo_client.key" = filesha256("${path.module}/config/certs/tempo_client.key")
           "tempo_authority.crt" = filesha256("${path.module}/config/certs/tempo_authority.crt")
+          "promtail.io/logs" = true
         }
       }
 
@@ -428,7 +429,6 @@ resource "kubernetes_persistent_volume_claim" "traefik_pvc" {
   }
 }
 
-
 resource "kubernetes_deployment" "traefik" {
 
   depends_on = [
@@ -460,6 +460,9 @@ resource "kubernetes_deployment" "traefik" {
       metadata {
         labels = {
           app = "traefik"
+        }
+        annotations = {
+          "promtail.io/logs" = true
         }
       }
 
@@ -717,6 +720,7 @@ resource "kubernetes_deployment" "grafana-agent" {
           "promtail-lokiurl.yml" = filesha256("${path.module}/promtail-lokiurl.yml")
           "prometheus-remoteurl.yml" = filesha256("${path.module}/prometheus-remoteurl.yml")
           "prometheus.yml" = filesha256("${path.module}/prometheus.yml")
+          "promtail.io/logs" = true
         }
       }
 
