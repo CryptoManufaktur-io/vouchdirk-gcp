@@ -3,14 +3,18 @@
 # Kill old SSH sessions
 kill $(ps aux | grep '[:]localhost:8888 -N -q -f' | awk '{print $2}')
 
+project_id=$(grep -o 'project_id\s*=\s*"[^"]*"' terraform.tfvars | cut -d'"' -f2)
+# folder_name=$(basename $(pwd))
+folder_name=$project_id
+
 # GCloud
-if gcloud config configurations list | grep -q "^$(basename $(pwd))"; then
-    echo "Activate the config named $(basename $(pwd))"
-    gcloud config configurations activate $(basename $(pwd))
-#    echo "Set quota project to $(basename $(pwd))"
-#    gcloud auth application-default set-quota-project $(basename $(pwd))
+if gcloud config configurations list | grep -q "^$folder_name"; then
+    echo "Activate the config named $folder_name"
+    gcloud config configurations activate $folder_name
+#    echo "Set quota project to $folder_name"
+#    gcloud auth application-default set-quota-project $folder_name
 else
-    echo "Create a config named $(basename $(pwd)) with matching Google project; don't set a default compute region"
+    echo "Create a config named $folder_name with matching Google project; don't set a default compute region"
     gcloud init
 fi
 
