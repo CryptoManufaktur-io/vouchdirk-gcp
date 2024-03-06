@@ -28,6 +28,11 @@ variable "vouch_tag" {
   type        = string
 }
 
+variable "vouch_mem" {
+  description = "Vouch max memory"
+  type        = string
+}
+
 variable "regions" {
   description = "All regions used"
   type        = map(any)
