@@ -591,8 +591,13 @@ resource "kubernetes_cluster_role" "grafana-agent-monitoring-cluster-role" {
 
   rule {
     api_groups = [""]
-    resources  = ["nodes", "nodes/proxy", "services", "endpoints", "pods"]
+    resources  = ["nodes", "nodes/proxy", "services", "endpoints", "pods", "nodes/metrics"]
     verbs      = ["get", "list", "watch"]
+  }
+
+  rule {
+    non_resource_urls = ["/metrics"]
+    verbs = ["get"]
   }
 }
 
@@ -776,14 +781,14 @@ resource "kubernetes_deployment" "grafana-agent" {
           }
           resources {
             limits = {
-              cpu    = "0.25"
-              memory = "0.5Gi"
+              cpu    = "0.5"
+              memory = "1Gi"
               ephemeral-storage = "10Mi"
             }
 
             requests = {
-              cpu    = "0.25"
-              memory = "0.5Gi"
+              cpu    = "0.5"
+              memory = "1Gi"
               ephemeral-storage = "10Mi"
             }
           }
@@ -863,7 +868,7 @@ resource "kubernetes_service" "vouch_metrics" {
       vouch = "vouch1"
     }
 
-    type = "NodePort"
+    type = "ClusterIP"
   }
 }
 
@@ -877,12 +882,142 @@ resource "kubernetes_service" "traefik_metrics" {
     port {
       name        = "traefik-metrics"
       port        = 8080
+      protocol = "TCP"
     }
 
     selector = {
-      traefik = "traefik"
+      app = "traefik"
     }
 
-    type = "NodePort"
+    type = "ClusterIP"
+  }
+}
+
+# kube-state-metrics
+resource "kubernetes_cluster_role" "kube-state-metrics-cluster-role" {
+  metadata {
+    name = "kube-state-metrics-cluster-role"
+  }
+
+  rule {
+    api_groups = [""]
+    resources  = ["nodes", "nodes/proxy", "services", "endpoints", "pods", "nodes/metrics"]
+    verbs      = ["get", "list", "watch"]
+  }
+
+  rule {
+    non_resource_urls = ["/metrics"]
+    verbs = ["get"]
+  }
+}
+
+resource "kubernetes_service_account" "kube-state-metrics-service-account" {
+  metadata {
+    name = "kube-state-metrics-service-account"
+  }
+}
+
+resource "kubernetes_cluster_role_binding" "kube-state-metrics-cluster-role-binding" {
+  metadata {
+    name = "kube-state-metrics-cluster-role-binding"
+  }
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = "kube-state-metrics-cluster-role"
+  }
+  subject {
+    kind      = "ServiceAccount"
+    name      = "kube-state-metrics-service-account"
+    namespace = "default"
+  }
+}
+
+resource "kubernetes_deployment" "kube_state_metrics" {
+  metadata {
+    name = "kube-state-metrics"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].spec[0].container[0].security_context,
+      spec[0].template[0].spec[0].security_context,
+      spec[0].template[0].spec[0].toleration
+    ]
+  }
+
+  spec {
+    replicas = 1
+
+    selector {
+      match_labels = {
+        app = "kube-state-metrics"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          app = "kube-state-metrics"
+        }
+      }
+
+      spec {
+        service_account_name = "kube-state-metrics-service-account"
+
+        container {
+          name  = "kube-state-metrics"
+          image = "k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.8.2"
+          args  = [
+            "--resources=pods,deployments,nodes",
+            "--node=",
+            "--port=8080"
+          ]
+
+          port {
+            container_port = 8080
+          }
+
+          resources {
+            limits = {
+              cpu    = "0.25"
+              memory = "0.5Gi"
+              ephemeral-storage = "10Mi"
+            }
+
+            requests = {
+              cpu    = "0.25"
+              memory = "0.5Gi"
+              ephemeral-storage = "10Mi"
+            }
+          }
+        }
+      }
+    }
+
+    strategy {
+      type = "Recreate"
+    }
+  }
+}
+
+resource "kubernetes_service" "kube_state_metrics" {
+
+  metadata {
+    name = "kube-state-metrics"
+  }
+
+  spec {
+    port {
+      name        = "kube-state-metrics"
+      port        = 8080
+      protocol = "TCP"
+    }
+
+    selector = {
+      app = "kube-state-metrics"
+    }
+
+    type = "ClusterIP"
   }
 }
