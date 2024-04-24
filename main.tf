@@ -110,6 +110,10 @@ output "kubernetes_cluster_names" {
   }
 }
 
+output "kubernetes_cluster_region" {
+  value = module.gke["lido"].kubernetes_cluster_region
+}
+
 output "compute_addresses" {
   value = {
     for key,value in module.compute: key => value.ip_address.address
