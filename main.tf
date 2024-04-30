@@ -1011,6 +1011,12 @@ resource "kubernetes_service" "kube_state_metrics" {
     name = "kube-state-metrics"
   }
 
+  lifecycle {
+    ignore_changes = [
+      metadata[0].annotations["cloud.google.com/neg"],
+    ]
+  }
+
   spec {
     port {
       name        = "kube-state-metrics"
