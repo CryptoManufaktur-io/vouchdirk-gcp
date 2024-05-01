@@ -509,13 +509,13 @@ resource "kubernetes_deployment" "traefik" {
           resources {
             limits = {
               cpu    = "0.25"
-              memory = "0.25Gi"
+              memory = "0.5Gi"
               ephemeral-storage = "10Mi"
             }
 
             requests = {
               cpu    = "0.25"
-              memory = "0.25Gi"
+              memory = "0.5Gi"
               ephemeral-storage = "10Mi"
             }
           }
@@ -985,13 +985,13 @@ resource "kubernetes_deployment" "kube_state_metrics" {
           resources {
             limits = {
               cpu    = "0.25"
-              memory = "0.25Gi"
+              memory = "0.5Gi"
               ephemeral-storage = "100Mi"
             }
 
             requests = {
               cpu    = "0.25"
-              memory = "0.25Gi"
+              memory = "0.5Gi"
               ephemeral-storage = "100Mi"
             }
           }
