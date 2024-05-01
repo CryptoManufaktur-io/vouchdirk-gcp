@@ -787,13 +787,13 @@ resource "kubernetes_deployment" "grafana-agent" {
             limits = {
               cpu    = "0.25"
               memory = "0.75Gi"
-              ephemeral-storage = "10Mi"
+              ephemeral-storage = "100Mi"
             }
 
             requests = {
               cpu    = "0.25"
               memory = "0.75Gi"
-              ephemeral-storage = "10Mi"
+              ephemeral-storage = "100Mi"
             }
           }
         }
@@ -986,13 +986,13 @@ resource "kubernetes_deployment" "kube_state_metrics" {
             limits = {
               cpu    = "0.25"
               memory = "0.5Gi"
-              ephemeral-storage = "10Mi"
+              ephemeral-storage = "100Mi"
             }
 
             requests = {
               cpu    = "0.25"
               memory = "0.5Gi"
-              ephemeral-storage = "10Mi"
+              ephemeral-storage = "100Mi"
             }
           }
         }
