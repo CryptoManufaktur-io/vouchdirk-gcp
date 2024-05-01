@@ -986,13 +986,13 @@ resource "kubernetes_deployment" "kube_state_metrics" {
             limits = {
               cpu    = "0.25"
               memory = "0.5Gi"
-              ephemeral-storage = "50Mi"
+              ephemeral-storage = "10Mi"
             }
 
             requests = {
               cpu    = "0.25"
               memory = "0.5Gi"
-              ephemeral-storage = "50Mi"
+              ephemeral-storage = "10Mi"
             }
           }
         }
