@@ -509,13 +509,13 @@ resource "kubernetes_deployment" "traefik" {
           resources {
             limits = {
               cpu    = "0.25"
-              memory = "0.5Gi"
+              memory = "0.25Gi"
               ephemeral-storage = "10Mi"
             }
 
             requests = {
               cpu    = "0.25"
-              memory = "0.5Gi"
+              memory = "0.25Gi"
               ephemeral-storage = "10Mi"
             }
           }
