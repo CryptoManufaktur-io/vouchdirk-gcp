@@ -48,4 +48,4 @@ fi
 
 # -----------------------------------------------------------------------------------------------------
 sed -i "s/SERVER_LABEL_HOSTNAME/$SERVER_LABEL_HOSTNAME/" "$WORK_DIR/agent.yml"
-exec /usr/bin/grafana-agent --config.file=$WORK_DIR/agent.yml --metrics.wal-directory=/etc/agent/data
+exec /usr/bin/alloy run $WORK_DIR/agent.yml --config.format=static --server.http.listen-addr=0.0.0.0:12345 --storage.path=/data-alloy
