@@ -377,7 +377,7 @@ resource "kubernetes_cluster_role" "traefik_role" {
   rule {
     verbs      = ["get", "list", "watch"]
     api_groups = [""]
-    resources  = ["services", "endpoints", "secrets"]
+    resources  = ["services", "endpoints", "secrets", "pods", "nodes"]
   }
 
   rule {
@@ -390,6 +390,12 @@ resource "kubernetes_cluster_role" "traefik_role" {
     verbs      = ["update"]
     api_groups = ["extensions", "networking.k8s.io"]
     resources  = ["ingresses/status"]
+  }
+
+  rule {
+    verbs      = ["list", "watch"]
+    api_groups = ["discovery.k8s.io"]
+    resources  = ["endpointslices"]
   }
 }
 
@@ -677,23 +683,7 @@ resource "kubernetes_config_map" "grafana-alloy-prometheus-remoteurl-config" {
   }
 }
 
-resource "kubernetes_persistent_volume_claim" "grafana-alloy-pvc" {
-  metadata {
-    name      = "grafana-alloy-pvc"
-  }
-
-  spec {
-    access_modes = ["ReadWriteOnce"]
-
-    resources {
-      requests = {
-        storage = "2Gi"
-      }
-    }
-  }
-}
-
-resource "kubernetes_deployment" "grafana-alloy" {
+resource "kubernetes_daemonset" "grafana-alloy" {
   metadata {
     name = "grafana-alloy"
     labels = {
@@ -710,8 +700,6 @@ resource "kubernetes_deployment" "grafana-alloy" {
   }
 
   spec {
-    replicas = 1
-
     selector {
       match_labels = {
         app = "grafana-alloy"
@@ -775,10 +763,6 @@ resource "kubernetes_deployment" "grafana-alloy" {
             sub_path = "prometheus-remoteurl.yml"
           }
           volume_mount {
-            mount_path = "/data-alloy"
-            name       = "grafana-alloy-data"
-          }
-          volume_mount {
             mount_path = "/var/log/pods"
             name       = "grafana-alloy-pods"
             read_only = true
@@ -798,12 +782,6 @@ resource "kubernetes_deployment" "grafana-alloy" {
           }
         }
 
-        volume {
-          name = "grafana-alloy-data"
-          persistent_volume_claim {
-            claim_name = "grafana-alloy-pvc"
-          }
-        }
         volume {
           name = "grafana-alloy-entrypoint-config"
 

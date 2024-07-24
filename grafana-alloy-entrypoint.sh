@@ -48,4 +48,7 @@ fi
 
 # -----------------------------------------------------------------------------------------------------
 sed -i "s/SERVER_LABEL_HOSTNAME/$SERVER_LABEL_HOSTNAME/" "$WORK_DIR/agent.yml"
-exec /usr/bin/alloy run $WORK_DIR/agent.yml --config.format=static --server.http.listen-addr=0.0.0.0:12345 --storage.path=/data-alloy
+
+# Removed --storage.path=/data-alloy since no volume mounted
+# Default location will be used ie --storage.path=/var/lib/alloy/data
+exec /usr/bin/alloy run $WORK_DIR/agent.yml --config.format=static --server.http.listen-addr=0.0.0.0:12345
