@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Kill old SSH sessions
-kill $(ps aux | grep '[:]localhost:8888 -N -q -f' | awk '{print $2}')
+kill $(ps aux | grep '[:]localhost:8888 -N' | awk '{print $2}')
 
 project_id=$(grep -o 'project_id\s*=\s*"[^"]*"' terraform.tfvars | cut -d'"' -f2)
 # folder_name=$(basename $(pwd))

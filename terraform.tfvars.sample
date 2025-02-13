@@ -45,7 +45,7 @@ ssh_pub_key = "/path/to/key.pem.pub"
 ssh_private_key = "/path/to/key.pem"
 
 # If extra arguments are needed for the ssh command to connect to dirk1 (e.g: going through a Jump host, they can be added here).
-ssh_extra_args = ""
+ssh_command = "gcloud compute ssh {data['ssh_user']}@{data['instance']} --project {data['project']} --zone {data['zone']} --ssh-key-file {data['ssh_private_key']} -- -L {port}:localhost:8888 -N -q -f"
 
 # Cloudflare is used to set the DNS records and generate LetsEncrypt ssl certs for the mev-boost service.
 acme_email = "user@example.com"

@@ -63,8 +63,8 @@ variable "ssh_private_key" {
   type        = string
 }
 
-variable "ssh_extra_args" {
-  description = "SSH Command extra arguments. E.g: -J for jumphost"
+variable "ssh_command" {
+  description = "SSH Command to access the instances"
   type        = string
 }
 
