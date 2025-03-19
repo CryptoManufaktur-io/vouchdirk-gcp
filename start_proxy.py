@@ -10,7 +10,9 @@ data = json.loads(content)
 
 port = 8888
 
-args = shlex.split(f"gcloud compute ssh {data['ssh_user']}@{data['instance']} --project {data['project']} --zone {data['zone']} --ssh-key-file {data['ssh_private_key']} -- {data['ssh_extra_args']} -L {port}:localhost:8888 -N -q -f")
+command = eval(f"f'{data['ssh_command']}'")
+
+args = shlex.split(command)
 subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 sys.stdout.write('{"port":"%(port)s"}\n' % {'port': port})

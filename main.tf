@@ -149,7 +149,7 @@ data "external" "bastion" {
     instance = module.compute["dirk1"].name
     ssh_user = var.ssh_user
     ssh_private_key = var.ssh_private_key
-    ssh_extra_args = var.ssh_extra_args
+    ssh_command = var.ssh_command
     host = "https://${module.gke["lido"].kubernetes_cluster_host}"
   }
 }
