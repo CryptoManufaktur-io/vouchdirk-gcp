@@ -351,6 +351,13 @@ resource "kubernetes_service" "vouch1-mev" {
     }
   }
 
+  lifecycle {
+    ignore_changes = [
+      metadata[0].annotations["cloud.google.com/neg"],
+      metadata[0].annotations["cloud.google.com/neg-status"]
+    ]
+  }
+
   spec {
     port {
       # protocol    = "TCP"
@@ -545,6 +552,12 @@ resource "kubernetes_service" "traefik_service" {
 
   metadata {
     name = "traefik-service"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      metadata[0].annotations["cloud.google.com/neg"],
+    ]
   }
 
   spec {
@@ -840,6 +853,12 @@ resource "kubernetes_service" "vouch_metrics" {
     name = "vouch-metrics"
   }
 
+  lifecycle {
+    ignore_changes = [
+      metadata[0].annotations["cloud.google.com/neg"],
+    ]
+  }
+
   spec {
     port {
       name        = "vouch-metrics"
@@ -858,6 +877,12 @@ resource "kubernetes_service" "traefik_metrics" {
 
   metadata {
     name = "traefik-metrics"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      metadata[0].annotations["cloud.google.com/neg"],
+    ]
   }
 
   spec {
