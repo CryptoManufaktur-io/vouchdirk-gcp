@@ -20,6 +20,7 @@ resource "google_compute_instance" "default" {
     initialize_params {
       image = var.compute_image
       type  = "pd-ssd"
+      size  = 20
     }
   }
 
