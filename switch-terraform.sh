@@ -15,7 +15,7 @@ if gcloud config configurations list | grep -q "^$folder_name"; then
 #    gcloud auth application-default set-quota-project $folder_name
 else
     echo "Create a config named $folder_name with matching Google project; don't set a default compute region"
-    gcloud init
+    gcloud init --skip-diagnostics
 fi
 
 active_account=$(gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>/dev/null)
