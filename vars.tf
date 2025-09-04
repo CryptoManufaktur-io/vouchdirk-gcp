@@ -28,6 +28,11 @@ variable "vouch_tag" {
   type        = string
 }
 
+variable "vouch_cpu" {
+  description = "Vouch max CPU"
+  type        = string
+}
+
 variable "vouch_mem" {
   description = "Vouch max memory"
   type        = string
