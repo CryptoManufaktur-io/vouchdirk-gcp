@@ -222,6 +222,8 @@ resource "kubernetes_deployment" "vouch1" {
           "tempo_client.key" = filesha256("${path.module}/config/certs/tempo_client.key")
           "tempo_authority.crt" = filesha256("${path.module}/config/certs/tempo_authority.crt")
           "promtail.io/logs" = true
+          # Stops GKE autoscaler consolidation evicting the validator client
+          "cluster-autoscaler.kubernetes.io/safe-to-evict" = "false"
         }
       }
 
