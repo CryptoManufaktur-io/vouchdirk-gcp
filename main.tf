@@ -238,6 +238,12 @@ resource "kubernetes_deployment" "vouch1" {
             container_port = 18550
           }
 
+          # Go 1.24+ listens with MPTCP by default; off until nodes run a CVE-2026-98432-fixed kernel (BCE-13379)
+          env {
+            name  = "GODEBUG"
+            value = "multipathtcp=0"
+          }
+
           volume_mount {
             mount_path = "/config/vouch-ee.json"
             sub_path = "vouch-ee.json"
@@ -514,6 +520,12 @@ resource "kubernetes_deployment" "traefik" {
           env {
             name  = "CF_DNS_API_TOKEN"
             value = var.cf_api_token
+          }
+
+          # See vouch1: disable Go's default MPTCP listeners (BCE-13379)
+          env {
+            name  = "GODEBUG"
+            value = "multipathtcp=0"
           }
 
           volume_mount {
