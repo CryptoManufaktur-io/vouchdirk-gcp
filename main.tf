@@ -194,7 +194,9 @@ resource "kubernetes_deployment" "vouch1" {
     ignore_changes = [
       spec[0].template[0].spec[0].container[0].security_context,
       spec[0].template[0].spec[0].security_context,
-      spec[0].template[0].spec[0].toleration
+      spec[0].template[0].spec[0].toleration,
+      # Autopilot adds extended-duration-pods affinity because of safe-to-evict=false
+      spec[0].template[0].spec[0].affinity
     ]
   }
 
@@ -571,6 +573,7 @@ resource "kubernetes_service" "traefik_service" {
   lifecycle {
     ignore_changes = [
       metadata[0].annotations["cloud.google.com/neg"],
+      metadata[0].annotations["networking.gke.io/target-pool"],
     ]
   }
 
