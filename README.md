@@ -46,7 +46,7 @@ gcloud auth application-default login
 gcloud auth login
 ```
 - Copy `backend.conf.sample` to `backend.conf` and set the Bucket name and Prefix for Terraform state data.
-- Copy `terraform.tfvars.sample` to `terraform.tfvars` and modify as needed. The `bce_telemetry_*` and `bci_access_*` values are the credentials Alloy uses to push metrics and logs to the BCE Mimir and Loki (`config.alloy.tftpl`).
+- Copy `terraform.tfvars.sample` to `terraform.tfvars` and modify as needed. The `bce_*` and `bci_access_*` values are the push URLs and credentials Alloy uses to send metrics and logs to the BCE Mimir and Loki (`config.alloy.tftpl`).
 - Initialize terraform:
 ```shell
 terraform init -backend-config=backend.conf
