@@ -663,53 +663,38 @@ resource "kubernetes_cluster_role_binding" "grafana-alloy-monitoring-cluster-rol
   }
 }
 
-resource "kubernetes_config_map" "grafana-alloy-entrypoint-config" {
+locals {
+  # e.g. lido7-vouchdirk -> lido7
+  telemetry_environment = trimsuffix(var.project_id, "-vouchdirk")
+  grafana_alloy_config = templatefile("${path.module}/config.alloy.tftpl", {
+    cluster     = "${local.telemetry_environment}-vouch"
+    environment = local.telemetry_environment
+    server      = "${var.project_id}-vouch"
+  })
+}
+
+resource "kubernetes_config_map" "grafana-alloy-config" {
   metadata {
-    name = "grafana-alloy-entrypoint-config"
+    name = "grafana-alloy-config"
   }
 
   data = {
-    "grafana-alloy-entrypoint.sh" = "${file("${path.module}/grafana-alloy-entrypoint.sh")}"
+    "config.alloy" = local.grafana_alloy_config
   }
 }
 
-resource "kubernetes_config_map" "grafana-alloy-promtail-config" {
+resource "kubernetes_secret" "bce-telemetry" {
   metadata {
-    name = "grafana-alloy-promtail-config"
+    name = "bce-telemetry"
   }
 
   data = {
-    "promtail.yml" = "${file("${path.module}/promtail.yml")}"
-  }
-}
-
-resource "kubernetes_config_map" "grafana-alloy-promtail-lokiurl-config" {
-  metadata {
-    name = "grafana-alloy-promtail-lokiurl-config"
-  }
-
-  data = {
-    "promtail-lokiurl.yml" = "${file("${path.module}/promtail-lokiurl.yml")}"
-  }
-}
-
-resource "kubernetes_config_map" "grafana-alloy-prometheus-config" {
-  metadata {
-    name = "grafana-alloy-prometheus-config"
-  }
-
-  data = {
-    "prometheus.yml" = "${file("${path.module}/prometheus.yml")}"
-  }
-}
-
-resource "kubernetes_config_map" "grafana-alloy-prometheus-remoteurl-config" {
-  metadata {
-    name = "grafana-alloy-prometheus-remoteurl-config"
-  }
-
-  data = {
-    "prometheus-remoteurl.yml" = "${file("${path.module}/prometheus-remoteurl.yml")}"
+    BCE_MIMIR_PUSH_URL       = var.bce_mimir_push_url
+    BCE_LOKI_PUSH_URL        = var.bce_loki_push_url
+    BCE_TELEMETRY_USER       = var.bce_telemetry_user
+    BCE_TELEMETRY_PASSWORD   = var.bce_telemetry_password
+    BCI_ACCESS_CLIENT_ID     = var.bci_access_client_id
+    BCI_ACCESS_CLIENT_SECRET = var.bci_access_client_secret
   }
 }
 
@@ -742,11 +727,7 @@ resource "kubernetes_daemonset" "grafana-alloy" {
           app = "grafana-alloy"
         }
         annotations = {
-          "grafana-alloy-entrypoint.sh" = filesha256("${path.module}/grafana-alloy-entrypoint.sh")
-          "promtail.yml" = filesha256("${path.module}/promtail.yml")
-          "promtail-lokiurl.yml" = filesha256("${path.module}/promtail-lokiurl.yml")
-          "prometheus-remoteurl.yml" = filesha256("${path.module}/prometheus-remoteurl.yml")
-          "prometheus.yml" = filesha256("${path.module}/prometheus.yml")
+          "config.alloy"     = sha256(local.grafana_alloy_config)
           "promtail.io/logs" = true
         }
       }
@@ -754,7 +735,7 @@ resource "kubernetes_daemonset" "grafana-alloy" {
       spec {
         service_account_name = "grafana-alloy-monitoring-service-account"
         container {
-          image = "grafana/alloy:latest"
+          image = "grafana/alloy:v1.20.1"
           name  = "grafana-alloy"
           env {
             name = "HOSTNAME"
@@ -765,32 +746,17 @@ resource "kubernetes_daemonset" "grafana-alloy" {
               }
             }
           }
-          command = ["/usr/bin/bash", "-c", "/configs/grafana-alloy-entrypoint.sh ${var.project_id}-vouch"]
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.bce-telemetry.metadata[0].name
+            }
+          }
+          args = ["run", "/etc/alloy/config.alloy", "--storage.path=/var/lib/alloy/data", "--server.http.listen-addr=0.0.0.0:12345"]
 
           volume_mount {
-            mount_path = "/configs/grafana-alloy-entrypoint.sh"
-            name       = "grafana-alloy-entrypoint-config"
-            sub_path = "grafana-alloy-entrypoint.sh"
-          }
-          volume_mount {
-            mount_path = "/configs/promtail.yml"
-            name       = "grafana-alloy-promtail-config"
-            sub_path = "promtail.yml"
-          }
-          volume_mount {
-            mount_path = "/configs/promtail-lokiurl.yml"
-            name       = "grafana-alloy-promtail-lokiurl-config"
-            sub_path = "promtail-lokiurl.yml"
-          }
-          volume_mount {
-            mount_path = "/configs/prometheus.yml"
-            name       = "grafana-alloy-prometheus-config"
-            sub_path = "prometheus.yml"
-          }
-          volume_mount {
-            mount_path = "/configs/prometheus-remoteurl.yml"
-            name       = "grafana-alloy-prometheus-remoteurl-config"
-            sub_path = "prometheus-remoteurl.yml"
+            mount_path = "/etc/alloy"
+            name       = "grafana-alloy-config"
+            read_only  = true
           }
           volume_mount {
             mount_path = "/var/log/pods"
@@ -813,42 +779,10 @@ resource "kubernetes_daemonset" "grafana-alloy" {
         }
 
         volume {
-          name = "grafana-alloy-entrypoint-config"
+          name = "grafana-alloy-config"
 
           config_map {
-            name = "grafana-alloy-entrypoint-config"
-            default_mode = "0775"
-          }
-        }
-        volume {
-          name = "grafana-alloy-promtail-config"
-
-          config_map {
-            name = "grafana-alloy-promtail-config"
-            default_mode = "0644"
-          }
-        }
-        volume {
-          name = "grafana-alloy-promtail-lokiurl-config"
-
-          config_map {
-            name = "grafana-alloy-promtail-lokiurl-config"
-            default_mode = "0644"
-          }
-        }
-        volume {
-          name = "grafana-alloy-prometheus-config"
-
-          config_map {
-            name = "grafana-alloy-prometheus-config"
-            default_mode = "0644"
-          }
-        }
-        volume {
-          name = "grafana-alloy-prometheus-remoteurl-config"
-
-          config_map {
-            name = "grafana-alloy-prometheus-remoteurl-config"
+            name         = kubernetes_config_map.grafana-alloy-config.metadata[0].name
             default_mode = "0644"
           }
         }

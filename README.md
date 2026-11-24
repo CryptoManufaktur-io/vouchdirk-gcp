@@ -7,7 +7,7 @@ The infrastructure includes:
 - 5 dirk VMs with reserved IP addresses
 - 1 GKE [Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview#what-is-autopilot) Private Cluster, running:
     - Vouch
-    - Grafana agent (for prometheus metrics and logs)
+    - Grafana Alloy (for prometheus metrics and logs)
     - ExternalDNS
     - Traefik
 - dirk firewall to allow port 13141 traffic from the other dirks and from vouch
@@ -46,9 +46,7 @@ gcloud auth application-default login
 gcloud auth login
 ```
 - Copy `backend.conf.sample` to `backend.conf` and set the Bucket name and Prefix for Terraform state data.
-- Copy `terraform.tfvars.sample` to `terraform.tfvars` and modify as needed.
-- Copy `prometheus-remoteurl.yml.sample` to `prometheus-remoteurl.yml` and modify as needed. Grafana agent will scrape prometheus metrics and remote write to a server with the details provided on this file.
-- Copy `promtail-lokiurl.yml.sample` to `promtail-lokiurl.yml` and modify as needed. Grafana agent will collect logs of pods running in the kubernetes and send them to remote loki using the details on this file.
+- Copy `terraform.tfvars.sample` to `terraform.tfvars` and modify as needed. The `bce_*` and `bci_access_*` values are the push URLs and credentials Alloy uses to send metrics and logs to the BCE Mimir and Loki (`config.alloy.tftpl`).
 - Initialize terraform:
 ```shell
 terraform init -backend-config=backend.conf
