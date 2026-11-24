@@ -1,0 +1,282 @@
+// Rendered by Terraform (templatefile). Credentials come from the bce-telemetry Secret as env vars.
+
+// =============================================================================
+// METRICS
+// =============================================================================
+
+discovery.kubernetes "kubernetes_cadvisor" {
+	role = "node"
+}
+
+discovery.kubernetes "kubernetes_nodes" {
+	role = "node"
+}
+
+discovery.kubernetes "kubernetes_resource" {
+	role = "node"
+}
+
+discovery.kubernetes "kubernetes_service_endpoints" {
+	role = "endpoints"
+}
+
+discovery.kubernetes "kubernetes" {
+	role = "endpoints"
+}
+
+discovery.kubernetes "metrics_server" {
+	role = "endpoints"
+}
+
+discovery.relabel "kubernetes" {
+	targets = discovery.kubernetes.kubernetes.targets
+
+	rule {
+		source_labels = ["__meta_kubernetes_endpoints_name"]
+		regex         = "kubernetes"
+		action        = "keep"
+	}
+}
+
+discovery.relabel "metrics_server" {
+	targets = discovery.kubernetes.metrics_server.targets
+
+	rule {
+		source_labels = ["__meta_kubernetes_endpoints_name"]
+		regex         = "metrics-server"
+		action        = "keep"
+	}
+}
+
+prometheus.scrape "vouch" {
+	targets = [{
+		__address__ = "vouch-metrics:8081",
+	}]
+	forward_to = [prometheus.remote_write.bce.receiver]
+	job_name   = "vouch"
+}
+
+prometheus.scrape "traefik" {
+	targets = [{
+		__address__ = "traefik-metrics:8080",
+	}]
+	forward_to = [prometheus.remote_write.bce.receiver]
+	job_name   = "traefik"
+}
+
+prometheus.scrape "kubernetes_cadvisor" {
+	targets      = discovery.kubernetes.kubernetes_cadvisor.targets
+	forward_to   = [prometheus.remote_write.bce.receiver]
+	job_name     = "kubernetes-cadvisor"
+	metrics_path = "/metrics/cadvisor"
+	scheme       = "https"
+
+	authorization {
+		type             = "Bearer"
+		credentials_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	}
+
+	tls_config {
+		ca_file = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+	}
+}
+
+prometheus.scrape "kubernetes_nodes" {
+	targets    = discovery.kubernetes.kubernetes_nodes.targets
+	forward_to = [prometheus.remote_write.bce.receiver]
+	job_name   = "kubernetes-nodes"
+	scheme     = "https"
+
+	authorization {
+		type             = "Bearer"
+		credentials_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	}
+
+	tls_config {
+		ca_file = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+	}
+}
+
+prometheus.scrape "kubernetes_resource" {
+	targets      = discovery.kubernetes.kubernetes_resource.targets
+	forward_to   = [prometheus.remote_write.bce.receiver]
+	job_name     = "kubernetes-resource"
+	metrics_path = "/metrics/resource"
+	scheme       = "https"
+
+	authorization {
+		type             = "Bearer"
+		credentials_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	}
+
+	tls_config {
+		ca_file = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+	}
+}
+
+prometheus.scrape "kubernetes_service_endpoints" {
+	targets    = discovery.kubernetes.kubernetes_service_endpoints.targets
+	forward_to = [prometheus.remote_write.bce.receiver]
+	job_name   = "kubernetes-service-endpoints"
+}
+
+prometheus.scrape "kubernetes" {
+	targets    = discovery.relabel.kubernetes.output
+	forward_to = [prometheus.remote_write.bce.receiver]
+	job_name   = "kubernetes"
+	scheme     = "https"
+
+	authorization {
+		type             = "Bearer"
+		credentials_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	}
+
+	tls_config {
+		ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+		insecure_skip_verify = true
+	}
+}
+
+prometheus.scrape "metrics_server" {
+	targets    = discovery.relabel.metrics_server.output
+	forward_to = [prometheus.remote_write.bce.receiver]
+	job_name   = "metrics-server"
+	scheme     = "https"
+
+	authorization {
+		type             = "Bearer"
+		credentials_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	}
+
+	tls_config {
+		ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+		insecure_skip_verify = true
+	}
+}
+
+prometheus.remote_write "bce" {
+	external_labels = {
+		cluster     = "${cluster}",
+		environment = "${environment}",
+	}
+
+	endpoint {
+		url     = sys.env("BCE_MIMIR_PUSH_URL")
+		headers = {
+			"BCI-Access-Client-Id"     = sys.env("BCI_ACCESS_CLIENT_ID"),
+			"BCI-Access-Client-Secret" = sys.env("BCI_ACCESS_CLIENT_SECRET"),
+			"X-Scope-OrgID"            = "primary",
+		}
+
+		basic_auth {
+			username = sys.env("BCE_TELEMETRY_USER")
+			password = sys.env("BCE_TELEMETRY_PASSWORD")
+		}
+	}
+}
+
+// =============================================================================
+// LOGS: pods annotated promtail.io/logs=true on this pod's node
+// =============================================================================
+
+discovery.kubernetes "pods" {
+	role = "pod"
+
+	selectors {
+		role  = "pod"
+		field = "spec.nodeName=" + coalesce(sys.env("HOSTNAME"), constants.hostname)
+	}
+}
+
+discovery.relabel "pods" {
+	targets = discovery.kubernetes.pods.targets
+
+	rule {
+		source_labels = ["__meta_kubernetes_pod_annotation_promtail_io_logs"]
+		regex         = "true"
+		action        = "keep"
+	}
+
+	rule {
+		target_label = "server"
+		replacement  = "${server}"
+	}
+
+	rule {
+		source_labels = ["__meta_kubernetes_pod_controller_name"]
+		regex         = "([0-9a-z-.]+?)(-[0-9a-f]{8,10})?"
+		target_label  = "__tmp_controller_name"
+	}
+
+	rule {
+		source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name", "__meta_kubernetes_pod_label_app", "__tmp_controller_name", "__meta_kubernetes_pod_name"]
+		regex         = "^;*([^;]+)(;.*)?$"
+		target_label  = "app"
+	}
+
+	rule {
+		source_labels = ["__meta_kubernetes_namespace"]
+		target_label  = "namespace"
+	}
+
+	rule {
+		source_labels = ["namespace", "app"]
+		separator     = "/"
+		target_label  = "job"
+	}
+
+	rule {
+		source_labels = ["__meta_kubernetes_pod_container_name"]
+		target_label  = "container_name"
+	}
+
+	rule {
+		source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+		separator     = "/"
+		target_label  = "__path__"
+		replacement   = "/var/log/pods/*$1/*.log"
+	}
+
+	rule {
+		source_labels = ["__meta_kubernetes_pod_annotationpresent_kubernetes_io_config_hash", "__meta_kubernetes_pod_annotation_kubernetes_io_config_hash", "__meta_kubernetes_pod_container_name"]
+		separator     = "/"
+		regex         = "true/(.*)"
+		target_label  = "__path__"
+		replacement   = "/var/log/pods/*$1/*.log"
+	}
+}
+
+loki.source.file "pods" {
+	targets    = discovery.relabel.pods.output
+	forward_to = [loki.process.pods.receiver]
+
+	file_match {
+		enabled = true
+	}
+}
+
+loki.process "pods" {
+	forward_to = [loki.write.bce.receiver]
+
+	stage.cri { }
+
+	stage.label_drop {
+		values = ["filename", "app", "namespace"]
+	}
+}
+
+loki.write "bce" {
+	endpoint {
+		url     = sys.env("BCE_LOKI_PUSH_URL")
+		headers = {
+			"BCI-Access-Client-Id"     = sys.env("BCI_ACCESS_CLIENT_ID"),
+			"BCI-Access-Client-Secret" = sys.env("BCI_ACCESS_CLIENT_SECRET"),
+			"X-Scope-OrgID"            = "primary",
+		}
+
+		basic_auth {
+			username = sys.env("BCE_TELEMETRY_USER")
+			password = sys.env("BCE_TELEMETRY_PASSWORD")
+		}
+	}
+}

@@ -100,3 +100,39 @@ variable "vouch_https_in_addresses" {
 variable "exiter_https_in_addresses" {
   type        = list(string)
 }
+
+variable "bce_mimir_push_url" {
+  description = "Mimir remote_write push URL for metrics"
+  type        = string
+  sensitive   = true
+}
+
+variable "bce_loki_push_url" {
+  description = "Loki push URL for logs"
+  type        = string
+  sensitive   = true
+}
+
+variable "bce_telemetry_user" {
+  description = "Basic auth user for the BCE Mimir and Loki push endpoints"
+  type        = string
+  sensitive   = true
+}
+
+variable "bce_telemetry_password" {
+  description = "Basic auth password for the BCE Mimir and Loki push endpoints"
+  type        = string
+  sensitive   = true
+}
+
+variable "bci_access_client_id" {
+  description = "BCI-Access-Client-Id header for the BCE Mimir and Loki push endpoints"
+  type        = string
+  sensitive   = true
+}
+
+variable "bci_access_client_secret" {
+  description = "BCI-Access-Client-Secret header for the BCE Mimir and Loki push endpoints"
+  type        = string
+  sensitive   = true
+}

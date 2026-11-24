@@ -57,3 +57,10 @@ mev_subdomain = "mev-vouchdirk"
 ssh_in_addresses = ["0.0.0.0/0"]
 vouch_https_in_addresses = ["0.0.0.0/0"]
 exiter_https_in_addresses = ["0.0.0.0/0"]
+
+bce_mimir_push_url = "https://mimir.example.com/api/v1/push"
+bce_loki_push_url = "https://loki.example.com/loki/api/v1/push"
+bce_telemetry_user = "USER"
+bce_telemetry_password = "PASSWORD"
+bci_access_client_id = "CLIENTID"
+bci_access_client_secret = "CLIENTSECRET"
